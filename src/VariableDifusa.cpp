@@ -7,6 +7,7 @@ VariableDifusa::VariableDifusa() {
 	numConjuntos = 0;
 	Minimo = 0.0;
 	Maximo = 0.0;
+    membresias={};
 }
 
 
@@ -16,7 +17,7 @@ VariableDifusa::VariableDifusa(const std::string& _variable, int _numConjuntos, 
     numConjuntos = _numConjuntos;
     Minimo = Min;
     Maximo = Max;
-
+    membresias.clear();
     double paso = (Maximo - Minimo) / (numConjuntos - 1);
     for (int i = 0; i < numConjuntos; ++i)
     {
@@ -42,33 +43,37 @@ VariableDifusa::VariableDifusa(const std::string& _variable, int _numConjuntos, 
 
         // Asignar la forma dentro del constructor del conjunto
         conjuntos.push_back(std::move(nuevo));
+        membresias.push_back(0.0);
     }
 }
 
 
-// ------------------------ Métodos de gestión protegidos------------------------
+// ------------------------ Mï¿½todos de gestiï¿½n protegidos------------------------
 
 void VariableDifusa::agregarConjunto(std::unique_ptr<ConjuntoDifuso> nuevo) {
     conjuntos.push_back(std::move(nuevo));
-    numConjuntos = static_cast<int>(conjuntos.size());
+    membresias.push_back(0.0);
+    numConjuntos = (int)(conjuntos.size());
 }
 
 void VariableDifusa::agregarConjuntoTringular(double limInf, double nucleo, double limSup, const std::string& etiqueta) {
     std::unique_ptr<ConjuntoDifuso> nuevo;
 	std::vector<double> params = { limInf, nucleo, limSup };
-	int id = static_cast<int>(conjuntos.size()) + 1;
+	int id = (int)(conjuntos.size()) + 1;
 	nuevo = std::make_unique<Triangular>(params, etiqueta, id);
     conjuntos.push_back(std::move(nuevo));
-    numConjuntos = static_cast<int>(conjuntos.size());
+    membresias.push_back(0.0);
+    numConjuntos = (int)(conjuntos.size());
 }
 
 void VariableDifusa::agregarConjuntoTrapezoidal(double _limiteInf, double _nucleoInferior, double _nucleoSuperior, double _limiteSuperior, const std::string& etiqueta) {
     std::unique_ptr<ConjuntoDifuso> nuevo;
 	std::vector<double> params = { _limiteInf, _nucleoInferior, _nucleoSuperior, _limiteSuperior };
-	int id = static_cast<int>(conjuntos.size()) + 1;
+	int id = (int)(conjuntos.size()) + 1;
 	nuevo = std::make_unique<Trapezoidal>(params, etiqueta, id);
     conjuntos.push_back(std::move(nuevo));
-    numConjuntos = static_cast<int>(conjuntos.size());
+    membresias.push_back(0.0);
+    numConjuntos = (int)(conjuntos.size());
 }
 
 //editar para que sea en base a la etiqueta
@@ -76,7 +81,8 @@ void VariableDifusa::eliminarConjunto(const std::string& _etiqueta) {
     for (auto conjunto = conjuntos.begin(); conjunto != conjuntos.end(); ++conjunto) {
         if ((*conjunto)->getEtiqueta() == _etiqueta) {
             conjuntos.erase(conjunto);
-            numConjuntos = static_cast<int>(conjuntos.size());
+            membresias.pop_back();
+            numConjuntos = (int)(conjuntos.size());
             return;
         }
     }
@@ -90,17 +96,17 @@ void VariableDifusa::editarConjunto(const std::string& _etiqueta) {
             conjunto->show();
 
             cout << "\nIngrese los nuevos valores...\n";
-            conjunto->create(); // reutiliza el método create de cada hijo
+            conjunto->create(); // reutiliza el mï¿½todo create de cada hijo
 
-            cout << "Conjunto actualizado con éxito.\n";
+            cout << "Conjunto actualizado con ï¿½xito.\n";
             return;
         }
     }
-    cout << "No se encontró un conjunto con la etiqueta: " << _etiqueta << endl;
+    cout << "No se encontrï¿½ un conjunto con la etiqueta: " << _etiqueta << endl;
 }
 
 
-// ------------------------ Visualización ------------------------
+// ------------------------ Visualizaciï¿½n ------------------------
 
 void VariableDifusa::mostrarConjuntos() const {
     for (const auto& conjunto : conjuntos) {
@@ -119,12 +125,13 @@ void VariableDifusa::mostrarConjunto(const std::string& _etiqueta) const {
     cout << "Conjunto con etiqueta " << _etiqueta << " no encontrado." << endl;
 }
 
-// ------------------------ Membresía ------------------------
+// ------------------------ Membresï¿½a ------------------------
 
-void VariableDifusa::calcularMembresia(double valor) const {
+void VariableDifusa::calcularMembresia(double valor) {
     cout << "Valor: " << valor << endl;
     for (const auto& conjunto : conjuntos) {
         double mu = conjunto->membership(valor);
+        membresias.at(conjunto->getID() - 1) = mu;
         cout << "Conjunto [" << conjunto->getEtiqueta() << "] = " << mu << endl;
     }
 }
@@ -140,7 +147,7 @@ std::string VariableDifusa::getVariable() const {
 }
 
 int VariableDifusa::getNumConjuntos() const {
-    return static_cast<int>(conjuntos.size());
+    return (int)(conjuntos.size());
 }
 
 std::pair<double, double> VariableDifusa::getRango() const {
@@ -152,7 +159,7 @@ void VariableDifusa::setRango(double nuevoMin, double nuevoMax) {
         throw std::invalid_argument("El minimo debe ser menor que el maximo.");
     }
 
-    // Validar que los conjuntos estén dentro del rango
+    // Validar que los conjuntos estï¿½n dentro del rango
     for (const auto& conjunto : conjuntos) {
         const auto& params = conjunto->getParametros();
         for (double p : params) {
@@ -167,8 +174,8 @@ void VariableDifusa::setRango(double nuevoMin, double nuevoMax) {
 }
 
 ConjuntoDifuso* VariableDifusa::getConjunto(int index) const {
-    if (index < 0 || index >= static_cast<int>(conjuntos.size())) {
-        throw out_of_range("Índice fuera de rango en getConjunto().");
+    if (index < 0 || index >= (int)(conjuntos.size())) {
+        throw out_of_range("ï¿½ndice fuera de rango en getConjunto().");
     }
     return conjuntos[index].get();
 }
@@ -188,35 +195,37 @@ ConjuntoDifuso* VariableDifusa::getConjunto(const std::string& etiqueta) const {
             }
         }
     }
-    throw invalid_argument("No se encontró un conjunto con la etiqueta: " + etiqueta);
+    throw invalid_argument("No se encontro un conjunto con la etiqueta: " + etiqueta);
 }
 
 //Publicos
 void VariableDifusa::agregarConjuntoP(std::unique_ptr<ConjuntoDifuso> nuevo) {
-    // Llama a la lógica protegida de agregar
+    // Llama a la lÃ³gica protegida de agregar
     agregarConjunto(std::move(nuevo));
 }
 
 void VariableDifusa::agregarConjuntoTringularP(double limInf, double nucleo, double limSup, const std::string& etiqueta) {
-    // Llama a la lógica protegida
+    // Llama a la lÃ³gica protegida
     agregarConjuntoTringular(limInf, nucleo, limSup, etiqueta);
 }
 
 void VariableDifusa::agregarConjuntoTrapezoidalP(double _limiteInf, double _nucleoInferior, double _nucleoSuperior,
     double _limiteSuperior, const std::string& etiqueta) {
-    // Llama a la lógica protegida
+    // Llama a la lï¿½gica protegida
     agregarConjuntoTrapezoidal(_limiteInf, _nucleoInferior, _nucleoSuperior, _limiteSuperior, etiqueta);
 }
 
 void VariableDifusa::eliminarConjuntoP(const std::string& _etiqueta) {
-    // Llama a la lógica protegida
+    // Llama a la lï¿½gica protegida
     eliminarConjunto(_etiqueta);
 }
 
 void VariableDifusa::editarConjuntoP(const std::string& _etiqueta) {
-    // Llama a la lógica protegida
+    // Llama a la lï¿½gica protegida
     editarConjunto(_etiqueta);
 }
 
-
+std::vector<double> VariableDifusa::getMembresias() const {
+    return membresias;
+}
 

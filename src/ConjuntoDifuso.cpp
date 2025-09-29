@@ -37,6 +37,11 @@ void ConjuntoDifuso::setParametros(const std::vector<double>& _parametros) {
     this->parametros = _parametros;
 }
 
+//Esto se agrega si en dado caso, no se pasa la variable
+//como std::vector, sino como {} denominada temporales
+void ConjuntoDifuso::setParametros(const std::vector<double>&& _parametros) {
+    this->parametros = std::move(_parametros);
+}
 std::vector<double> ConjuntoDifuso::getParametros() const {
     return parametros;
 }
