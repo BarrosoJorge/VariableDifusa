@@ -128,11 +128,11 @@ void VariableDifusa::mostrarConjunto(const std::string& _etiqueta) const {
 // ------------------------ Membres�a ------------------------
 
 void VariableDifusa::calcularMembresia(double valor) {
-    cout << "Valor: " << valor << endl;
+    //cout << "Valor: " << valor << endl;
     for (const auto& conjunto : conjuntos) {
         double mu = conjunto->membership(valor);
         membresias.at(conjunto->getID() - 1) = mu;
-        cout << "Conjunto [" << conjunto->getEtiqueta() << "] = " << mu << endl;
+        //cout << "Conjunto [" << conjunto->getEtiqueta() << "] = " << mu << endl;
     }
 }
 
