@@ -2,7 +2,7 @@
 #include "Triangular.h"
 #include "Trapezoidal.h"
 #include "VariableDifusa.h"
-
+#include<algorithm>
 using namespace std;
 
 int main() {
@@ -12,7 +12,7 @@ int main() {
 
     //  renombrar
     vector<string> etiquetas = { "RojoIzq", "Amarillo", "Verde", "Cyan", "Azul", "Magenta", "RojoDer" };
-
+e de iteraciÃ³n en 
     for (int i = 0; i < hue.getNumConjuntos(); i++) {
         ConjuntoDifuso* conjunto = hue.getConjunto(i);
         conjunto->setEtiqueta(etiquetas[i]);
@@ -55,9 +55,10 @@ int main() {
 
 	Edad.mostrarConjuntos();
 
-	// Calcular membresía
+	// Calcular membresï¿½a
 	Edad.calcularMembresia(22);
-
+	std::vector<double> membresias = Edad.getMembresias();
+	std::cout<<"Maximo:"<<*max_element(membresias.begin(), membresias.end())<<std::endl;
 	//Eliminar un conjunto y hacer mas grande maduro
 	Edad.eliminarConjuntoP("Viejo");
 	Edad.getConjunto("Maduro")->setNucleoSupP(55);

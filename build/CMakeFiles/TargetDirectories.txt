@@ -1,3 +1,0 @@
-/home/adrian/Documents/Uni/Quinto/sistemas/tarea3/VariableDifusa/build/CMakeFiles/VariableDifusa.dir
-/home/adrian/Documents/Uni/Quinto/sistemas/tarea3/VariableDifusa/build/CMakeFiles/edit_cache.dir
-/home/adrian/Documents/Uni/Quinto/sistemas/tarea3/VariableDifusa/build/CMakeFiles/rebuild_cache.dir

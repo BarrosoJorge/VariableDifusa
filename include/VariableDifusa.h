@@ -13,7 +13,7 @@ class VariableDifusa {
         int numConjuntos;
         double Minimo;
         double Maximo;
-
+        std::vector<double> membresias;
         // M�todos de gesti�n de conjuntos
         void agregarConjunto(std::unique_ptr<ConjuntoDifuso> nuevo); //recibe un conjunto ya armado
 
@@ -44,9 +44,9 @@ class VariableDifusa {
         // M�todos de visualizaci�n
         void mostrarConjuntos() const;
         void mostrarConjunto(const std::string& _etiqueta) const;
-
+        std::vector<double> getMembresias() const;
         // Membres�a
-        void calcularMembresia(double valor) const;
+        void calcularMembresia(double valor);
 
         // Getters/Setters de la variable
         void setVariable(const std::string& _variable);

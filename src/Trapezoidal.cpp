@@ -2,7 +2,6 @@
 #include <iostream>
 #include <limits>
 #include <stdexcept>
-using namespace std;
 
 
 Trapezoidal::Trapezoidal() {
@@ -28,48 +27,45 @@ Trapezoidal::Trapezoidal(const std::vector<double>& _parametros, const std::stri
 
 void Trapezoidal::create() {
     double a, b, c, d;
-    while (true) {
-        try {
-            cout << "Creando conjunto difuso trapezoidal...\n";
+    std::string etiqueta;
+    std::cout << "Creando conjunto difuso trapezoidal...\n";
+    std::cout << "Ingrese limite inferior: ";
+    do{
 
-            cout << "Ingrese limite inferior: ";
-            if (!(cin >> a)) throw invalid_argument("Entrada no numerica para limite inferior.");
-
-            cout << "Ingrese nucleo inferior: ";
-            if (!(cin >> b)) throw invalid_argument("Entrada no numerica para nucleo inferior.");
-
-            cout << "Ingrese nucleo superior: ";
-            if (!(cin >> c)) throw invalid_argument("Entrada no numerica para nucleo superior.");
-
-            cout << "Ingrese limite superior: ";
-            if (!(cin >> d)) throw invalid_argument("Entrada no numerica para limite superior.");
-
-            if (!(a <= b && b <= c && c <= d)) {
-                throw logic_error("Limite_inferior <= Nucleo_inferior <= Nucleo_superior <= Limite_superior.");
-            }
-
-            cout << "Ingrese etiqueta: ";
-            if (!(cin >> etiqueta)) throw invalid_argument("Entrada no valida para etiqueta.");
-
-            parametros[0] = a;
-            parametros[1] = b;
-            parametros[2] = c;
-            parametros[3] = d;
-
-            cout << "Conjunto trapezoidal creado exitosamente.\n";
-            break;
+        while (!(std::cin >> a)){
+            std::cout << "Entrada no numerica para limite inferior.";
+            std::cin.clear();
+            std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+        } 
+        std::cout << "Ingrese nucleo inferior: ";
+        while (!(std::cin >> b)){
+            std::cout << "Entrada no numerica para nucleo inferior.";
+            std::cin.clear();
+            std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
         }
-        catch (const invalid_argument& e) {
-            cin.clear();
-            cin.ignore(numeric_limits<streamsize>::max(), '\n');
-            cout << "Error: " << e.what() << endl;
+        std::cout << "Ingrese nucleo superior: ";
+        while (!(std::cin >> c)){
+            std::cout << "Entrada no numerica para nucleo superior.";
+            std::cin.clear();
+            std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
         }
-        catch (const logic_error& e) {
-            cin.clear();
-            cin.ignore(numeric_limits<streamsize>::max(), '\n');
-            cout << "Error de logica: " << e.what() << endl;
+        std::cout << "Ingrese limite superior: ";
+        while (!(std::cin >> d)) {
+            std::cout << "Entrada no numerica para limite superior.";
+            std::cin.clear();
+            std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
         }
+    }    while (!(a <= b && b <= c && c <= d)&&       std::cout << "Error de logica: limite_inferior <= nucleo_inferior <= nucleo_superior <= limite_superior." << std::endl);
+
+    std::cout << "Ingrese etiqueta: ";
+    std::getline(std::cin, etiqueta);
+    while (etiqueta.empty()) {
+        std::cout << "Etiqueta no puede estar vacía. Intente nuevamente: ";
+        std::getline(std::cin, etiqueta);
     }
+    parametros={a, b, c, d};
+    this->etiqueta=etiqueta;
+    std::cout << "Conjunto trapezoidal creado exitosamente.\n";
 }
 void Trapezoidal::setForma(const int& _forma) {
 	if (_forma == 0) {
@@ -79,10 +75,10 @@ void Trapezoidal::setForma(const int& _forma) {
 	ConjuntoDifuso::setForma(_forma);
 }
 void Trapezoidal::show() const {
-    cout << "Conjunto Difuso Trapezoidal [" << etiqueta << "]\n";
-    cout << "Parametros: (" << parametros[0] << ", " << parametros[1]
-        << ", " << parametros[2] << ", " << parametros[3] << ")\n";
-    cout << "ID: " << id << endl;
+    std::cout << "Conjunto Difuso Trapezoidal [" << etiqueta << "]\n";
+    std::cout << "Parametros: (" << parametros[0] << ", " << parametros[1]
+              << ", " << parametros[2] << ", " << parametros[3] << ")\n";
+    std::cout << "ID: " << id << std::endl;
 }
 
 double Trapezoidal::membership(double x) const {
@@ -95,28 +91,28 @@ double Trapezoidal::membership(double x) const {
 
     return 0.0;
 }
-
+//Limite inferiorP
 void Trapezoidal::setLimiteInferiorP(double valor) { 
     setLimiteInferior(valor); 
 }
 double Trapezoidal::getLimiteInferiorP() const { 
     return getLimiteInferior(); 
 }
-
+//Nucleo inferiorP
 void Trapezoidal::setNucleoInfP(double valor) { 
     setNucleoInf(valor); 
 }
 double Trapezoidal::getNucleoInfP() const { 
     return getNucleoInf(); 
 }
-
+//Nucleo superiorP
 void Trapezoidal::setNucleoSupP(double valor) { 
     setNucleoSup(valor); 
 }
 double Trapezoidal::getNucleoSupP() const { 
     return getNucleoSup(); 
 }
-
+//Limite superiorP
 void Trapezoidal::setLimiteSuperiorP(double valor) { 
     setLimiteSuperior(valor); 
 }
@@ -141,20 +137,20 @@ double Trapezoidal::getLimiteSuperior() const {
 
 void Trapezoidal::setLimiteInferior(const double& _LimInferior) {
     if (_LimInferior <= parametros[1]) parametros[0] = _LimInferior;
-    else cout << "Error: Limite inferior debe ser <= nucleo inferior." << endl;
+    else std::cout << "Error: Limite inferior debe ser <= nucleo inferior." << std::endl;
 }
 void Trapezoidal::setNucleoInf(const double& _Nucleo) {
     if (_Nucleo >= parametros[0] && _Nucleo <= parametros[2]) parametros[1] = _Nucleo;
-    else cout << "Error: Nucleo inferior debe estar entre limite inferior y nucleo superior." << endl;
+    else throw std::invalid_argument("Error: Nucleo inferior debe estar entre limite inferior y nucleo superior.");
 }
 void Trapezoidal::setNucleoSup(const double& _Nucleo) {
     if (_Nucleo >= parametros[1] && _Nucleo <= parametros[3]) parametros[2] = _Nucleo;
-    else cout << "Error: Nucleo superior debe estar entre nucleo inferior y limite superior." << endl;
+    else throw std::invalid_argument("Error: Nucleo superior debe estar entre nucleo inferior y limite superior.");
 }
 void Trapezoidal::setLimiteSuperior(const double& _LimSuperior) {
     if (_LimSuperior >= parametros[2]) parametros[3] = _LimSuperior;
-    else cout << "Error: Limite superior debe ser >= nucleo superior." << endl;
+    else throw std::invalid_argument("Error: Limite superior debe ser >= nucleo superior.");
 }
 
-void Trapezoidal::setNucleoP(double) { throw logic_error("No aplicable a Trapezoidal"); }
-double Trapezoidal::getNucleoP() const { throw logic_error("No aplicable a Trapezoidal"); }
+void Trapezoidal::setNucleoP(double) { throw std::logic_error("No aplicable a Trapezoidal"); }
+double Trapezoidal::getNucleoP() const { throw std::logic_error("No aplicable a Trapezoidal"); }

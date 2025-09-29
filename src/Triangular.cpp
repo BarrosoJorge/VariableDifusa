@@ -18,6 +18,8 @@ Triangular::Triangular(const std::vector<double>& _parametros, const std::string
     forma = 0;
     id = _id;
     etiqueta = _etiqueta;
+    if(_parametros.size() != 3)
+        throw std::invalid_argument("Error: Se requieren exactamente 3 parametros para un conjunto triangular.");
     parametros = _parametros;
 }
 
@@ -27,34 +29,31 @@ void Triangular::create() {
     std::string etiqueta;
     std::cout << "Creando conjunto difuso triangular...\n";
     std::cout << "Ingrese limite inferior: ";
-    while (!(std::cin >> inf)){
-        std::cout << "Entrada no numerica para limite inferior.";
-        std::cin.clear();
-        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+    do{
+        while (!(std::cin >> inf)){
+            std::cout << "Entrada no numerica para limite inferior.";
+            std::cin.clear();
+            std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+        }
+        std::cout << "Ingrese nucleo: ";
+        while (!(std::cin >> nucleo)) {
+            std::cout << "Entrada no numerica para nucleo.";
+            std::cin.clear();
+            std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+        }
+    
+        std::cout << "Ingrese limite superior: ";
+        while (!(std::cin >> sup)) {
+            std::cout << "Entrada no numerica para limite superior.";
+            std::cin.clear();
+            std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+        }
     }
-    std::cout << "Ingrese nucleo: ";
-    while (!(std::cin >> nucleo)) {
-        std::cout << "Entrada no numerica para nucleo.";
-        std::cin.clear();
-        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-    }
-
-    std::cout << "Ingrese limite superior: ";
-    while (!(std::cin >> sup)) {
-        std::cout << "Entrada no numerica para limite superior.";
-        std::cin.clear();
-        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-    }
-    while (!(inf <= nucleo && nucleo <= sup)) {
-        std::cout << "Error de logica: limite_inferior <= nucleo <= limite_superior." << std::endl;
-        std::cout << "Ingrese limite inferior: "; std::cin >> inf;
-        std::cout << "Ingrese nucleo: "; std::cin >> nucleo;
-        std::cout << "Ingrese limite superior: "; std::cin >> sup;
-    }
+    while (!(inf <= nucleo && nucleo <= sup) && std::cout << "Error: limite_inferior <= nucleo <= limite_superior.\n"); 
     std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
     std::cout << "Ingrese etiqueta: ";
     std::getline(std::cin, etiqueta);
-    while (std::getline(std::cin, etiqueta), etiqueta.empty()) {
+    while (etiqueta.empty()) {
         std::cout << "Etiqueta no puede estar vacía. Intente nuevamente: ";
         std::getline(std::cin, etiqueta);
     }
@@ -127,8 +126,9 @@ double Triangular::getNucleo() const {
 }
 
 void Triangular::setLimiteSuperior(const double& _LimSuperior) {
-    if (_LimSuperior >= parametros[1]) parametros[2] = _LimSuperior;
-    else cout << "Error: El limite superior debe ser mayor o igual que el nucleo." << endl;
+    if (_LimSuperior < parametros[1]) 
+        throw std::invalid_argument("Error: El limite superior debe ser mayor o igual que el nucleo.");
+    parametros[2] = _LimSuperior;
 }
 
 double Triangular::getLimiteSuperior() const {
@@ -146,7 +146,7 @@ void Triangular::setForma(const int& _forma) {
 
 
 // Para Trapezoidal lanza excepci�n si se llama desde Triangular
-void Triangular::setNucleoInfP(double) { throw logic_error("No aplicable a Triangular"); }
-double Triangular::getNucleoInfP() const { throw logic_error("No aplicable a Triangular"); }
-void Triangular::setNucleoSupP(double) { throw logic_error("No aplicable a Triangular"); }
-double Triangular::getNucleoSupP() const { throw logic_error("No aplicable a Triangular"); }
+void Triangular::setNucleoInfP(double) { throw std::logic_error("No aplicable a Triangular"); }
+double Triangular::getNucleoInfP() const { throw std::logic_error("No aplicable a Triangular"); }
+void Triangular::setNucleoSupP(double) { throw std::logic_error("No aplicable a Triangular"); }
+double Triangular::getNucleoSupP() const { throw std::logic_error("No aplicable a Triangular"); }
