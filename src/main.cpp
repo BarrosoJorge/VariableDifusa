@@ -38,7 +38,7 @@ int valor(cv::Mat& membresias,VariableDifusa& var,std::vector<std::string> etiqu
 	
 }
 int main(){
-	std::vector<std::string> etiquetas={"red_i","yellow","green","cyan","blue","magenta","red_d"};
+	std::vector<std::string> etiquetas={"red_i","orange","yellow","green","cyan","blue","purple","magenta","red_d"};
 	VariableDifusa fuzzyHue("Hue",etiquetas.size(),0,255,false,etiquetas);
 	fuzzyHue.mostrarConjuntos();
 	cv::Mat img;
@@ -51,7 +51,6 @@ int main(){
 	cv::Mat hue=channels[0];
 	cv::Mat etiquetasImg(hue.size(), CV_8U);
 	std::vector<std::string>etiqueta;
-	ConjuntoDifuso * conj;
 	for(int row=0;row<hue.rows;row++){
 		for(int col=0;col<hue.cols;col++){
 			uchar pixel=hue.at<uchar>(row,col);
@@ -63,12 +62,12 @@ int main(){
 	valor(etiquetasImg,fuzzyHue,etiqueta);
 
 	channels[0]=etiquetasImg;
+	channels[1] = cv::Mat::ones(channels[1].size(), CV_8U)*255; 
+	channels[2] = cv::Mat::ones(channels[2].size(), CV_8U)*255;
 	cv::Mat hsv;
 	cv::merge(channels,hsv);
 	cv::Mat bgr;
 	cv::cvtColor(hsv, bgr, cv::COLOR_HSV2BGR_FULL);
-
-
 	cv::imshow("Hue en RGB", bgr);
 	cv::waitKey(0);
 }
