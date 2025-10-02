@@ -8,4 +8,8 @@ file(GLOB SOURCES "src/*.cpp")
 
 include_directories(include)
 
+find_package(OpenCV REQUIRED)
+include_directories(${OpenCV_INCLUDE_DIRS})
+
 add_executable(VariableDifusa ${SOURCES})
+target_link_libraries(VariableDifusa ${OpenCV_LIBS})

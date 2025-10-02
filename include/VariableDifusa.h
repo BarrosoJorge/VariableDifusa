@@ -14,6 +14,8 @@ class VariableDifusa {
         double Minimo;
         double Maximo;
         std::vector<double> membresias;
+        std::string etiquetaDif;
+        int id;
         // M�todos de gesti�n de conjuntos
         void agregarConjunto(std::unique_ptr<ConjuntoDifuso> nuevo); //recibe un conjunto ya armado
 
@@ -29,6 +31,7 @@ class VariableDifusa {
     public:
         // Constructores
         VariableDifusa();
+        VariableDifusa(const std::string& _variable, int _numConjuntos, double Min, double Max, bool triangular,const std::vector<std::string>& etiquetas);
         VariableDifusa(const std::string& _variable, int _numConjuntos, double Min, double Max, bool triangular);
 
         //  M�todos p�blicos de gesti�n de conjuntos 
@@ -55,7 +58,8 @@ class VariableDifusa {
         int getNumConjuntos() const;
 
         std::pair<double, double> getRango() const;
-
+        std::string getEtiquetaDifusa() const;
+        int getId()const;
         void setRango(double nuevoMin, double nuevoMax);
 
         ConjuntoDifuso* getConjunto(int indice) const;

@@ -11,6 +11,53 @@ VariableDifusa::VariableDifusa() {
 }
 
 
+VariableDifusa::VariableDifusa(const std::string& _variable, int _numConjuntos, double Min, double Max, bool triangular,const std::vector<std::string>& etiquetas={})
+{
+    variable = _variable;
+    numConjuntos = _numConjuntos;
+    Minimo = Min;
+    Maximo = Max;
+    membresias.clear();
+    double paso = (Maximo - Minimo) / (numConjuntos - 1);
+    for (int i = 0; i < numConjuntos; ++i)
+    {
+        double centro = Minimo + paso * i;
+        std::unique_ptr<ConjuntoDifuso> nuevo;
+
+        if (triangular)
+        {
+            double inf = (i == 0) ? Minimo : centro - paso;
+            double sup = (i == numConjuntos - 1) ? Maximo : centro + paso;
+            std::vector<double> parametros = { inf, centro, sup };
+            if(etiquetas.size()==numConjuntos){
+                nuevo = std::make_unique<Triangular>(parametros, etiquetas[i], i + 1);
+            }
+            else{
+                nuevo = std::make_unique<Triangular>(parametros, "TriangularG" + std::to_string(i + 1), i + 1);
+            }
+        }
+        else
+        {
+            double Limiteinf = (i == 0) ? Minimo : centro - paso;
+            double Limitsup = (i == numConjuntos - 1) ? Maximo : centro + paso;
+            std::vector<double> parametros = { Limiteinf, centro, centro, Limitsup };
+
+            if(etiquetas.size()==numConjuntos){
+                nuevo = std::make_unique<Trapezoidal>(parametros, etiquetas[i], i + 1);
+            }
+            else{
+                nuevo = std::make_unique<Trapezoidal>(parametros, "TrapezoidalG" + std::to_string(i + 1), i + 1);
+            }
+        }
+
+        // Asignar la forma dentro del constructor del conjunto
+        conjuntos.push_back(std::move(nuevo));
+        membresias.push_back(0.0);
+    }
+}
+
+
+
 VariableDifusa::VariableDifusa(const std::string& _variable, int _numConjuntos, double Min, double Max, bool triangular)
 {
     variable = _variable;
@@ -29,8 +76,8 @@ VariableDifusa::VariableDifusa(const std::string& _variable, int _numConjuntos, 
             double inf = (i == 0) ? Minimo : centro - paso;
             double sup = (i == numConjuntos - 1) ? Maximo : centro + paso;
             std::vector<double> parametros = { inf, centro, sup };
-
             nuevo = std::make_unique<Triangular>(parametros, "TriangularG" + std::to_string(i + 1), i + 1);
+        
         }
         else
         {
@@ -39,6 +86,7 @@ VariableDifusa::VariableDifusa(const std::string& _variable, int _numConjuntos, 
             std::vector<double> parametros = { Limiteinf, centro, centro, Limitsup };
 
             nuevo = std::make_unique<Trapezoidal>(parametros, "TrapezoidalG" + std::to_string(i + 1), i + 1);
+            
         }
 
         // Asignar la forma dentro del constructor del conjunto
@@ -46,7 +94,6 @@ VariableDifusa::VariableDifusa(const std::string& _variable, int _numConjuntos, 
         membresias.push_back(0.0);
     }
 }
-
 
 // ------------------------ M�todos de gesti�n protegidos------------------------
 
@@ -129,13 +176,21 @@ void VariableDifusa::mostrarConjunto(const std::string& _etiqueta) const {
 
 void VariableDifusa::calcularMembresia(double valor) {
     //cout << "Valor: " << valor << endl;
+    double maxMu=0.0;
     for (const auto& conjunto : conjuntos) {
         double mu = conjunto->membership(valor);
         membresias.at(conjunto->getID() - 1) = mu;
+        if(mu>maxMu){
+            maxMu=mu;
+            this->etiquetaDif=conjunto->getEtiqueta();
+            this->id=conjunto->getID();
+        }
         //cout << "Conjunto [" << conjunto->getEtiqueta() << "] = " << mu << endl;
     }
 }
-
+std::string VariableDifusa::getEtiquetaDifusa() const {
+    return etiquetaDif;
+}
 // ------------------------ Getters/Setters ------------------------
 
 void VariableDifusa::setVariable(const std::string& _variable) {
@@ -145,7 +200,9 @@ void VariableDifusa::setVariable(const std::string& _variable) {
 std::string VariableDifusa::getVariable() const {
     return variable;
 }
-
+int VariableDifusa::getId()const{
+    return this->id;
+}
 int VariableDifusa::getNumConjuntos() const {
     return (int)(conjuntos.size());
 }

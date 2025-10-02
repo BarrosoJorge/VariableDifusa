@@ -1,73 +1,74 @@
-#include "ConjuntoDifuso.h"
-#include "Triangular.h"
-#include "Trapezoidal.h"
+/*
+red_i
+yellow
+green
+cyan
+blue
+magenta
+red_d
+*/
+#include<opencv2/opencv.hpp>
 #include "VariableDifusa.h"
 #include<algorithm>
-using namespace std;
-
-int main() {
-    /*
-    // Crear variable Hue con rango 0-360
-    VariableDifusa hue("Hue", 7, 0, 360, false);
-
-    //  renombrar
-    vector<string> etiquetas = { "RojoIzq", "Amarillo", "Verde", "Cyan", "Azul", "Magenta", "RojoDer" };
-e de iteración en 
-    for (int i = 0; i < hue.getNumConjuntos(); i++) {
-        ConjuntoDifuso* conjunto = hue.getConjunto(i);
-        conjunto->setEtiqueta(etiquetas[i]);
-    }
-
-    cout << " Conjuntos iniciales Hue (0-360) " << endl;
-    hue.mostrarConjuntos();
-
-	//cout << "Forma de verde: " << hue.getConjunto("Verde")->getForma() << endl;
-	hue.getConjunto("Verde")->show();
-	//hue.editarConjuntoP("Verde");
-    //hue.getConjunto("Verde")->setNucleoInfP(90);
-	//hue.getConjunto("Verde")->setNucleoSupP(150);
-	hue.getConjunto("Verde")->show();
-
-
-	hue.agregarConjuntoTrapezoidalP(0, 30, 30, 60, "Naranja");
-	hue.mostrarConjuntos();
-    */
-
-    VariableDifusa Edad("Edad", 5, 20, 60, false);
-
-	// Renombrar conjuntos a mano
-    Edad.getConjunto(0)->setEtiqueta("Muy Joven"); //20 a 30
-	Edad.getConjunto(1)->setEtiqueta("Joven"); //20 a 40
-	Edad.getConjunto(2)->setEtiqueta("Adulto"); //30 a 50
-	Edad.getConjunto(3)->setEtiqueta("Maduro"); //40 a 60
-	Edad.getConjunto(4)->setEtiqueta("Viejo"); //50 a 60
-
-    Edad.mostrarConjuntos();
-
-    //Expandiendo el rango
-	Edad.setRango(10, 80);
-	cout << "Rango modificado: (" << Edad.getRango().first << ", " << Edad.getRango().second << ")\n";
-
-	//Agregar un adolescente y un anciano
-
-	Edad.agregarConjuntoTrapezoidalP(10, 10, 15, 20, "Adolescente");
-	Edad.agregarConjuntoTrapezoidalP(60, 70, 80, 80, "Anciano");
-
-	Edad.mostrarConjuntos();
-
-	// Calcular membres�a
-	Edad.calcularMembresia(22);
-	std::vector<double> membresias = Edad.getMembresias();
-	std::cout<<"Maximo:"<<*max_element(membresias.begin(), membresias.end())<<std::endl;
-	//Eliminar un conjunto y hacer mas grande maduro
-	Edad.eliminarConjuntoP("Viejo");
-	Edad.getConjunto("Maduro")->setNucleoSupP(55);
-	Edad.getConjunto("Maduro")->setLimiteSuperiorP(70);
-	Edad.mostrarConjuntos();
-
-
-    return 0;
+int open_image(std::string name_file, cv::Mat& img){
+	img=cv::imread(name_file);
+	if(img.empty()){
+		std::cerr << "Error al cargar la imagen!" << std::endl;
+        return 1;
+	}
+	return 0;
 }
+void split_channels(const cv::Mat&img,std::vector<cv::Mat>& channels){
+	cv::Mat hsv;
+	cvtColor(img,hsv, cv::COLOR_BGR2HSV_FULL);
+	cv::split(hsv,channels);
+}
+int valor(cv::Mat& membresias,VariableDifusa& var,std::vector<std::string> etiqueta){
+	double valor=0;
+	for(int row=0;row<membresias.rows;row++){
+		for(int col=0;col<membresias.cols;col++){
+			std::string val=etiqueta[col+row*membresias.cols];
+			ConjuntoDifuso* conj=var.getConjunto(val);
+			valor=(conj->getNucleoSupP()+conj->getNucleoInfP())/2;
+			if(val=="red_i" ||val=="red_d") valor=0.0;
+			membresias.at<uchar>(row,col)=valor;
+		}
+	}
+	return 0;
+	
+}
+int main(){
+	std::vector<std::string> etiquetas={"red_i","yellow","green","cyan","blue","magenta","red_d"};
+	VariableDifusa fuzzyHue("Hue",etiquetas.size(),0,255,false,etiquetas);
+	fuzzyHue.mostrarConjuntos();
+	cv::Mat img;
+	open_image("../asset/rainbow.jpg",img);
+	
+	std::vector<cv::Mat> channels;
+	split_channels(img,channels);
+	//Ahora se hara el sistema de reglas
+	
+	cv::Mat hue=channels[0];
+	cv::Mat etiquetasImg(hue.size(), CV_8U);
+	std::vector<std::string>etiqueta;
+	ConjuntoDifuso * conj;
+	for(int row=0;row<hue.rows;row++){
+		for(int col=0;col<hue.cols;col++){
+			uchar pixel=hue.at<uchar>(row,col);
+			fuzzyHue.calcularMembresia(pixel);
+			etiquetasImg.at<uchar>(row,col)=fuzzyHue.getId();
+			etiqueta.push_back(fuzzyHue.getEtiquetaDifusa());
+		}
+	}
+	valor(etiquetasImg,fuzzyHue,etiqueta);
+
+	channels[0]=etiquetasImg;
+	cv::Mat hsv;
+	cv::merge(channels,hsv);
+	cv::Mat bgr;
+	cv::cvtColor(hsv, bgr, cv::COLOR_HSV2BGR_FULL);
 
 
-
+	cv::imshow("Hue en RGB", bgr);
+	cv::waitKey(0);
+}
