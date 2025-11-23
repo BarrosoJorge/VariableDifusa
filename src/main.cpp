@@ -71,3 +71,41 @@ int main(){
 	cv::imshow("Hue en RGB", bgr);
 	cv::waitKey(0);
 }
+
+
+/* ejemplo de implementacion con las nuevas clases, pero aun no esta probado.
+int main() {
+    // 1. Configurar Variables 
+    VariableDifusa fuzzyHue(...);
+    VariableDifusa fuzzySat(...);
+    
+    // 2. Configurar el Sistema 
+    SistemaDifuso motor;
+
+    // Crear Regla 1: Si Hue es Rojo Y Sat no es Baja -> Es Rojo
+    Regla r1("red", 1); 
+    r1.agregarPremisaP(&fuzzyHue, "red_i", TipoPremisa::AFIRMACION);
+    r1.agregarPremisaP(&fuzzySat, "low", TipoPremisa::NEGACION);
+    motor.agregarReglaP(r1);
+
+    // Crear Regla 2: Si Hue es Verde -> Es Verde
+    Regla r2("green", 2);
+    r2.agregarPremisaP(&fuzzyHue, "green", TipoPremisa::AFIRMACION);
+    motor.agregarReglaP(r2);
+
+	// loop de la imagen 
+    for(int row=0; row<rows; row++) {
+        for(int col=0; col<cols; col++) {
+             // A. Actualizar las variables con el dato crudo
+             fuzzyHue.calcularMembresia(pixel_hue);
+             fuzzySat.calcularMembresia(pixel_sat);
+
+             // B. El motor decide
+             std::string resultado = motor.resolver();
+             
+             // C. Usar el resultado
+             // etiquetasImg.at<uchar>(row,col) = ...;
+        }
+    }
+}
+*/
