@@ -11,14 +11,57 @@ DataFrame::DataFrame(const std::vector<std::string> &colnames) {
   addColNames(colnames);
 }
 void DataFrame::addColNames(const std::vector<std::string> &colnames) {
-  for (const auto &names : colnames) {
-    this->columns.push_back({names, {}});
+  for (const auto &name : colnames) {
+    column col;
+    col.name = name;
+    col.tipo = ColumnType::Int; // provisional (se ajusta al leer)
+    columns.push_back(col);
   }
 }
-void DataFrame::add_row(const std::vector<Cell> &row) {
+void DataFrame::add_row(const std::vector<std::string> &row) {
+  if (row.size() != this->columns.size())
+    throw std::runtime_error("Row has wrong number of columns.");
   for (size_t i = 0; i < row.size(); i++) {
-    this->columns[i].data.push_back(row[i]);
+    auto &col = columns[i];
+    const std::string val = row[i];
+
+    try {
+      int v = std::stoi(val);
+      if (col.tipo == ColumnType::Int) {
+        col.ints.push_back(v);
+      } else if (col.tipo == ColumnType::Double) {
+        col.doubles.push_back(double(v));
+      } else {
+        throw std::runtime_error("Can't store number into string column.");
+      }
+      continue;
+    } catch (...) {
+    }
+    try {
+      double v = std::stod(val);
+      if (col.tipo == ColumnType::Int) {
+        col.ints.push_back(v);
+      } else if (col.tipo == ColumnType::Double) {
+        col.doubles.push_back(double(v));
+      } else {
+        throw std::runtime_error("Can't store number into string column.");
+      }
+      continue;
+    } catch (...) {
+    }
+    if (col.tipo != ColumnType::String) {
+      col.tipo = ColumnType::String;
+      col.strings.reserve(nrows + 1);
+      for (int v : col.ints)
+        col.strings.push_back(std::to_string(v));
+      for (double v : col.doubles)
+        col.strings.push_back(std::to_string(v));
+      col.ints.clear();
+      col.doubles.clear();
+    }
+    col.strings.push_back(val);
   }
+  nrows++;
 }
 void DataFrame::print_cols() {
   std::cout << "Columnas: \n";
@@ -30,120 +73,67 @@ DataFrame::column &DataFrame::operator[](const std::string &name) {
     if (cols.name == name) {
       return cols;
     }
+    throw std::runtime_error("Column not found: " + name);
   }
   throw std::out_of_range("Column does not exist: " + name);
 }
-double DataFrame::min(std::vector<Cell> &valor) {
-  double min = 0.0;
-  bool encontro = false;
-  for (auto &column : valor) {
-    if (std::holds_alternative<int>(column)) {
-      double valor = (double)std::get<int>(column);
-      if (!encontro) {
-        min = valor;
-        encontro = true;
-      }
-      if (min > valor)
-        min = valor;
-    }
-    if (std::holds_alternative<double>(column)) {
-      double valor = std::get<double>(column);
-      if (!encontro) {
-        min = valor;
-        encontro = true;
-      }
-      if (min > valor)
-        min = valor;
-    } else {
-      break;
-    }
+double DataFrame::min(const column &valor) const {
+  if (valor.tipo == ColumnType::Int) {
+    return *std::min_element(valor.ints.begin(), valor.ints.end());
   }
-  if (!encontro)
-    std::runtime_error("No encontro");
-
-  return min;
-}
-double DataFrame::max(std::vector<Cell> &valor) {
-  double max = 0.0;
-  bool encontro = false;
-  for (auto &column : valor) {
-    if (std::holds_alternative<int>(column)) {
-      double valor = (double)std::get<int>(column);
-      if (!encontro) {
-        max = valor;
-        encontro = true;
-      }
-      if (max < valor)
-        max = valor;
-    }
-    if (std::holds_alternative<double>(column)) {
-      double valor = std::get<double>(column);
-      if (!encontro) {
-        max = valor;
-        encontro = true;
-      }
-      if (max < valor)
-        max = valor;
-    } else {
-      break;
-    }
+  if (valor.tipo == ColumnType::Double) {
+    return *std::min_element(valor.doubles.begin(), valor.doubles.end());
   }
-  if (!encontro)
-    std::runtime_error("No encontro");
-
-  return max;
+  throw std::runtime_error("min() not supportd for string column");
 }
-double DataFrame::mean(std::vector<Cell> &valor) {
-  double mean = 0.0;
-  bool encontro = false;
-  for (auto &column : valor) {
-    if (std::holds_alternative<int>(column)) {
-      double valor = (double)std::get<int>(column);
-      mean += valor;
-      encontro = true;
-    }
-    if (std::holds_alternative<double>(column)) {
-      double valor = std::get<double>(column);
-      mean += valor;
-      encontro = true;
-    } else {
-      break;
-    }
+double DataFrame::max(const column &valor) const {
+  if (valor.tipo == ColumnType::Int) {
+    return *std::max_element(valor.ints.begin(), valor.ints.end());
   }
-  if (!encontro)
-    std::runtime_error("No encontro");
-
-  return mean / (double)valor.size();
-}
-double DataFrame::std(std::vector<Cell> &valor) {
-  double suma = 0.0;
-  bool encontro = false;
-  double mean = this->mean(valor);
-  for (auto &column : valor) {
-    if (std::holds_alternative<int>(column)) {
-      double valor = (double)std::get<int>(column);
-      suma += (valor - mean) * (valor - mean);
-      encontro = true;
-    }
-    if (std::holds_alternative<double>(column)) {
-      double valor = std::get<double>(column);
-      suma += (valor - mean) * (valor - mean);
-      encontro = true;
-    } else {
-      break;
-    }
+  if (valor.tipo == ColumnType::Double) {
+    return *std::max_element(valor.doubles.begin(), valor.doubles.end());
   }
-  if (!encontro)
-    std::runtime_error("No encontro");
-
-  return sqrt(suma / valor.size());
+  throw std::runtime_error("max() not supportd for string column");
 }
-void DataFrame::info(std::vector<Cell> &valor) {
+double DataFrame::mean(const column &valor) const {
+  if (valor.tipo == ColumnType::Int) {
+    double s = 0;
+    for (int i : valor.ints)
+      s += i;
+    return s / valor.ints.size();
+  }
+  if (valor.tipo == ColumnType::Double) {
+    double s = 0;
+    for (double i : valor.doubles)
+      s += i;
+    return s / valor.doubles.size();
+  }
+  throw std::runtime_error("mean() not supportd for string column");
+}
+double DataFrame::std(const column &valor) const {
+  double m = mean(valor);
+  double s = 0;
+  if (valor.tipo == ColumnType::Int) {
+    for (int i : valor.ints)
+      s += (i - m) * (i - m);
+    return std::sqrt(s / valor.ints.size());
+  }
+  if (valor.tipo == ColumnType::Double) {
+    for (double i : valor.doubles)
+      s += (i - m) * (i - m);
+    return std::sqrt(s / valor.doubles.size());
+  }
+  throw std::runtime_error("mean() not supportd for string column");
+}
+void DataFrame::info(const column &valor) {
   double minimo = this->min(valor);
   double maximo = this->max(valor);
   double promedio = this->mean(valor);
   double desviacion = this->std(valor);
   std::vector<double> cuartil = this->cuartil(valor);
+  std::cout << valor.name << ": "
+            << ((valor.tipo == ColumnType::Int) ? "integer" : "double")
+            << std::endl;
   std::cout << "minimo: " << minimo << std::endl;
   std::cout << "maximo: " << maximo << std::endl;
   std::cout << "promedio: " << promedio << std::endl;
@@ -152,46 +142,32 @@ void DataFrame::info(std::vector<Cell> &valor) {
   std::cout << "q2: " << cuartil[1] << std::endl;
   std::cout << "q3: " << cuartil[2] << std::endl;
 }
-std::vector<double> DataFrame::cuartil(std::vector<Cell> &valor) {
-  std::vector<double> copia;
-  std::vector<double> cuartiles;
-  cuartiles.reserve(3);
-  bool encontro = false;
-  for (auto &column : valor) {
-    if (std::holds_alternative<int>(column)) {
-      double valor = (double)std::get<int>(column);
-      encontro = true;
-      copia.push_back(valor);
-    }
-    if (std::holds_alternative<double>(column)) {
-      double valor = std::get<double>(column);
-      encontro = true;
-      copia.push_back(valor);
-    } else {
-      break;
-    }
-  }
-  std::sort(copia.begin(), copia.end());
-  for (int i = 1; i <= 3; i++) {
-    size_t cuartil_idx = (copia.size() - 1) * i / 4;
-    double cuartil = (double)(copia.size() - 1) * i / 4;
-    cuartiles.push_back(copia[cuartil_idx] +
-                        (cuartil - cuartil_idx) *
-                            (copia[cuartil_idx + 1] - copia[cuartil_idx]));
-  }
-
-  if (!encontro)
-    std::runtime_error("No encontro");
-
-  return cuartiles;
+std::vector<double> DataFrame::cuartil(const column &valor) const {
+  std::vector<double> data;
+  if (valor.tipo == ColumnType::Int)
+    for (int v : valor.ints)
+      data.push_back(v);
+  else if (valor.tipo == ColumnType::Double)
+    data = valor.doubles;
+  else
+    throw std::runtime_error("quartiles() not supported for string columns.");
+  std::sort(data.begin(), data.end());
+  size_t n = data.size();
+  auto q = [&](double p) {
+    double idx = p * (n - 1);
+    size_t i = std::floor(idx);
+    double frac = idx - i;
+    return data[i] + frac * (data[i + 1] - data[i]);
+  };
+  return {q(0.25), q(0.5), q(0.75)};
 }
 void DataFrame::info() {
-  std::vector<std::string> colnames;
-  for (auto &names : this->columns) {
-    if (!std::holds_alternative<std::string>(names.data[0])) {
-      std::cout << names.name << std::endl;
-      this->info(names.data);
+  for (const auto &names : this->columns) {
+    if (names.tipo == ColumnType::String) {
+      std::cout << names.name << " : string (" << names.strings.size() << ")\n";
+      continue;
     }
+    this->info(names);
   }
 }
 const DataFrame::column &DataFrame::operator[](const std::string &name) const {
@@ -203,7 +179,6 @@ const DataFrame::column &DataFrame::operator[](const std::string &name) const {
   throw std::out_of_range("Column does not exist: " + name);
 }
 DataFrame read_csv(const std::string &file_path, char separation) {
-  DataFrame d;
   std::fstream fs(file_path, std::fstream::in);
   if (!fs.is_open()) {
     throw std::runtime_error("Error al leer el archivo");
@@ -211,26 +186,35 @@ DataFrame read_csv(const std::string &file_path, char separation) {
   std::string line;
   std::getline(fs, line);
   auto cols = split_fast(line, separation);
-  d.addColNames(cols);
-  while (getline(fs, line)) {
-    auto row_separated = split_fast(line, separation);
-    std::vector<DataFrame::Cell> row;
-    for (const auto &value : row_separated) {
+  DataFrame df(cols);
+  size_t count = 0;
+  std::streampos pos = fs.tellg();
+  while (std::getline(fs, line))
+    count++;
 
-      try {
-        row.push_back(std::stod(value));
-      } catch (...) {
-        try {
-          row.push_back(std::stoi(value));
-        } catch (...) {
-          row.push_back(value);
-        }
-      }
+  // Regresar al inicio de datos
+  fs.clear();
+  fs.seekg(pos);
+
+  for (auto &c : df.columns) {
+    switch (c.tipo) {
+    case ColumnType::Int:
+      c.ints.reserve(count);
+      break;
+    case ColumnType::Double:
+      c.doubles.reserve(count);
+      break;
+    case ColumnType::String:
+      c.strings.reserve(count);
+      break;
     }
-    d.add_row(row);
+  }
+  while (std::getline(fs, line)) {
+    std::vector<std::string> row_separated = split_fast(line, separation);
+    df.add_row(row_separated);
   }
   fs.close();
-  return d;
+  return df;
 }
 
 std::vector<std::string> split_fast(std::string line, char separation) {
