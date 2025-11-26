@@ -174,7 +174,7 @@ std::vector<double> DataFrame::cuartil(std::vector<Cell> &valor) {
   std::sort(copia.begin(), copia.end());
   for (int i = 1; i <= 3; i++) {
     size_t cuartil_idx = (copia.size() - 1) * i / 4;
-    double cuartil = (double)(copia.size() - 1) * 1 / 4;
+    double cuartil = (double)(copia.size() - 1) * i / 4;
     cuartiles.push_back(copia[cuartil_idx] +
                         (cuartil - cuartil_idx) *
                             (copia[cuartil_idx + 1] - copia[cuartil_idx]));
