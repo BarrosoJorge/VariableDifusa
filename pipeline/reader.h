@@ -38,6 +38,7 @@ public:
   void print() const;
   void print_cols();
   void info(std::vector<Cell> &valor);
+  void info();
 };
 
 DataFrame read_csv(const std::string &file_path, char separation = ',');

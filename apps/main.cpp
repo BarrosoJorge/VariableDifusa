@@ -14,6 +14,6 @@
 int main() {
   auto df = read_csv("../data/dataset_final_2.csv");
   df.print_cols();
-  df.info(df["Heart Rate"].data);
+  df.info();
   return 0;
 }

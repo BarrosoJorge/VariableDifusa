@@ -2,8 +2,9 @@
 #include <algorithm>
 #include <cmath>
 #include <cstdio>
-#include <functional>
+#include <cstring>
 #include <stdexcept>
+#include <string>
 #include <variant>
 #include <vector>
 DataFrame::DataFrame(const std::vector<std::string> &colnames) {
@@ -184,7 +185,15 @@ std::vector<double> DataFrame::cuartil(std::vector<Cell> &valor) {
 
   return cuartiles;
 }
-
+void DataFrame::info() {
+  std::vector<std::string> colnames;
+  for (auto &names : this->columns) {
+    if (!std::holds_alternative<std::string>(names.data[0])) {
+      std::cout << names.name << std::endl;
+      this->info(names.data);
+    }
+  }
+}
 const DataFrame::column &DataFrame::operator[](const std::string &name) const {
   for (const auto &col : columns) {
     if (col.name == name) {
