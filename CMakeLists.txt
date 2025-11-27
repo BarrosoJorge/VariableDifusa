@@ -25,6 +25,7 @@ set(SOURCES
 # --- Ejecutables ---
 add_executable(VariableDifusa apps/main.cpp ${SOURCES})
 add_executable(VariableDifusa2 apps/main_1.cpp ${SOURCES})   # si tienes otro main
+add_executable(VariableDifusa3 apps/main_2.cpp ${SOURCES})
 
 # --- Linking ---
 target_link_libraries(VariableDifusa ${OpenCV_LIBS})
