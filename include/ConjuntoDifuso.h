@@ -11,6 +11,9 @@ class ConjuntoDifuso {
       int forma;                       // Tipo de conjunto (0 triangular, 1 trapezoidal, 2 gaussiana)
       int id;
 
+
+      int prioridad;                   // Prioridad del conjunto (para resolución de conflictos)
+
    public:
       ConjuntoDifuso();
       ConjuntoDifuso(const std::string& _etiqueta, int _forma, int _id);
@@ -30,6 +33,11 @@ class ConjuntoDifuso {
       void setParametros(const std::vector<double>& _parametros);
       void setParametros(const std::vector<double>&& _parametros);
       std::vector<double> getParametros() const;
+
+
+      void setPrioridad(int _prioridad);
+      int getPrioridad() const;
+
 
       // Metodos abstractos 
       virtual void create() = 0;

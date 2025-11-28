@@ -20,6 +20,7 @@ set(SOURCES
     src/VariableDifusa.cpp
 
     pipeline/reader.cpp
+    src/GeneradorVariables.cpp
 )
 
 # --- Ejecutables ---

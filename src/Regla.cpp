@@ -7,12 +7,14 @@ Regla::Regla() {
     etiquetaConsecuente = "";
     idConsecuente = 0;
     fuerzaDisparo = 0.0;
+    operador = TipoOperador::AND; // Por defecto sigue siendo AND
 }
 
 Regla::Regla(const std::string& _etiquetaConsecuente, int _idConsecuente) {
     etiquetaConsecuente = _etiquetaConsecuente;
     idConsecuente = _idConsecuente;
     fuerzaDisparo = 0.0;
+    operador = TipoOperador::AND; // Por defecto
 }
 
 //  Métodos Protegidos 
@@ -28,22 +30,33 @@ void Regla::setConsecuente(const std::string& _etiqueta, int _id) {
 
 double Regla::calcularActivacion() {
     if (antecedentes.empty()) {
-        return 0.0; // Si no hay condiciones, la regla no hace nada
+        return 0.0; 
     }
 
-    // Iniciamos con el valor máximo posible para encontrar el mínimo (Operador AND)
-    double minW = 1.0; 
+    double resultado = 0.0;
 
-    for (auto& premisa : antecedentes) {
-        double valorVerdad = premisa.evaluar();
-        
-        // Operador AND difuso = Min(a, b)
-        if (valorVerdad < minW) {
-            minW = valorVerdad;
+    if (operador == TipoOperador::AND) {
+        // Lógica AND (Mínimo)
+        resultado = 1.0; 
+        for (auto& premisa : antecedentes) {
+            double val = premisa.evaluar();
+            if (val < resultado) {
+                resultado = val; // Nos quedamos con el menor
+            }
+        }
+    } 
+    else {
+        // Lógica OR (Máximo)
+        resultado = 0.0; 
+        for (auto& premisa : antecedentes) {
+            double val = premisa.evaluar();
+            if (val > resultado) {
+                resultado = val;
+            }
         }
     }
 
-    fuerzaDisparo = minW;
+    fuerzaDisparo = resultado;
     return fuerzaDisparo;
 }
 
@@ -77,17 +90,22 @@ std::string Regla::getEtiquetaConsecuente() const {
 }
 
 std::string Regla::toString() const {
+    std::string opStr = (operador == TipoOperador::AND) ? " AND " : " OR ";
     std::string texto = "IF ";
     
     for (size_t i = 0; i < antecedentes.size(); ++i) {
         texto += antecedentes[i].toString();
-        
-        // Agregamos el " AND " si no es el último elemento
         if (i < antecedentes.size() - 1) {
-            texto += " AND ";
+            texto += opStr;
         }
     }
-    
     texto += " THEN Output IS " + etiquetaConsecuente;
     return texto;
+}
+
+
+
+//Nuevo
+void Regla::setOperador(TipoOperador _op) {
+    operador = _op;
 }
