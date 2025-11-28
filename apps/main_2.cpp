@@ -1,203 +1,197 @@
-
-#include "VariableDifusa.h"
-#include "SistemaDifuso.h" 
+#include "SistemaDifuso.h"
 #include "Regla.h"
+#include "GeneradorVariables.h" // Incluimos tu nueva "Fábrica"
+#include <iostream>
+#include <vector>
+#include <string>
+#include <queue>
 
+// Estructura para representar a un paciente evaluado
+struct Paciente {
+    std::string nombre;
+    std::string colorTriage; // "rojo", "amarillo", "verde"
+    int prioridad;           // 2 (Rojo), 1 (Amarillo), 0 (Verde)
+    double membresia;        // Fuerza de disparo
 
+    // Constructor simple
+    Paciente(std::string n, std::string c, int p, double m) 
+        : nombre(n), colorTriage(c), prioridad(p), membresia(m) {}
+};
+
+struct ComparadorPacientes {
+    // Devuelve TRUE si el paciente "a" tiene MENOR prioridad que el "b"
+    bool operator()(const Paciente& a, const Paciente& b) {
+        
+        // 1. Criterio Principal: La Categoría (Prioridad entera)
+        if (a.prioridad != b.prioridad) {
+            return a.prioridad < b.prioridad; 
+            // Si A es 1 (Amarillo) y B es 2 (Rojo), A < B es true.
+            // B sube a la cima.
+        }
+
+        // 2. Criterio de Desempate: La Intensidad (Membresía)
+        // Si son del mismo color, atendemos primero al que tenga MAYOR membresía
+        // (El amarillo más "puro" pasa antes que el amarillo "dudoso/verde")
+        return a.membresia < b.membresia;
+    }
+};
 
 int main() {
-    // 1. Configurar Variables
+    // 1. Instanciar el generador
+    GeneradorVariables generator;
 
-    //heartrate = rojo_izq, amarillo_izq, verde, amarillo_der, rojo_der
-    //Oxygen satruarion = rojo, amarillo, verde
-    //Body temperature = rojo_izq, amarillo_izq, verde, amarillo_der, rojo_der
-    //Systolic blood pressure = rojo_izq, amarillo_izq, verde, amarillo_der, rojo_der
-    //Diastolic blood pressure = rojo_izq, amarillo_izq, verde, amarillo_der, rojo_der
+    std::cout << "Inicializando Sistema de Triage" << std::endl;
 
+    // 2. Crear las variables médicas (Ya vienen configuradas con los rangos exactos)
+    VariableDifusa fuzzyHeartrate   = generator.crearHeartRate();
+    VariableDifusa fuzzySaturation  = generator.crearOxygenSaturation();
+    VariableDifusa fuzzyBodyTemp    = generator.crearBodyTemp();
+    VariableDifusa fuzzySystolicBP  = generator.crearSystolicBP();
+    VariableDifusa fuzzyDiastolicBP = generator.crearDiastolicBP();
 
-    //Hay izquierda y derecha ya que hay colores por encima y por debajo del verde
-    std::vector<std::string> etiquetas_variable_1 = {"rojo_izq", "amarillo_izq", "verde", "amarillo_der", "rojo_der"};
-    
-    // Las usamos para oxygen y para asignar el color de salida
-    std::vector<std::string> etiquetas_salida = {"rojo", "amarillo", "verde"};
+    // Variable de Salida (Color del Triage)
+    VariableDifusa fuzzyColorOutput = generator.crearColorOutput();
 
-    //Definidos de manera predeterminada
-    VariableDifusa fuzzyHeartrate("Hr", etiquetas_variable_1.size(), 0, 200, false, etiquetas_variable_1);
-    VariableDifusa fuzzySaturation("O2", etiquetas_salida.size(), 0, 100, false, etiquetas_salida);
-    VariableDifusa fuzzyBodyTemp("Bt", etiquetas_variable_1.size(), 0, 45, false, etiquetas_variable_1);
-    VariableDifusa fuzzySystolicBP("SysBP", etiquetas_variable_1.size(), 0, 220, false, etiquetas_variable_1);
-    VariableDifusa fuzzyDiastolicBP("DiaBP", etiquetas_variable_1.size(), 0, 160, false, etiquetas_variable_1);
-
-    VariableDifusa fuzzyColorOutput("Output", etiquetas_salida.size(), 0, 100, false, etiquetas_salida);
-
-    // Mostrar los conjuntos para verificar que se crearon correctamente
-    //fuzzyHeartrate.mostrarConjuntos();
-    //fuzzySaturation.mostrarConjuntos();
-    //fuzzyBodyTemp.mostrarConjuntos();
-    //fuzzySystolicBP.mostrarConjuntos();
-    //fuzzyDiastolicBP.mostrarConjuntos();
-
-    //Modificar los rangos en base al triage
-    // heartrate rojo_izq: <40, amarillo_izq <60, verde 60-80, amarillo_der >110, rojo_der > 130
-    fuzzyHeartrate.getConjunto(0)->setNucleoSupP(40);
-
-    fuzzyHeartrate.getConjunto(1)->setLimiteInferiorP(40);
-    fuzzyHeartrate.getConjunto(1)->setNucleoInfP(50);
-    fuzzyHeartrate.getConjunto(1)->setNucleoSupP(50);
-    fuzzyHeartrate.getConjunto(1)->setLimiteSuperiorP(60);
-
-    fuzzyHeartrate.getConjunto(2)->setNucleoInfP(60);
-    fuzzyHeartrate.getConjunto(2)->setNucleoSupP(80);
-    fuzzyHeartrate.getConjunto(2)->setLimiteSuperiorP(110);
-
-    fuzzyHeartrate.getConjunto(3)->setLimiteInferiorP(80);
-    fuzzyHeartrate.getConjunto(3)->setNucleoInfP(110);
-    fuzzyHeartrate.getConjunto(3)->setNucleoSupP(110);
-    fuzzyHeartrate.getConjunto(3)->setLimiteSuperiorP(130);
-
-    fuzzyHeartrate.getConjunto(4)->setLimiteInferiorP(110);
-    fuzzyHeartrate.getConjunto(4)->setNucleoInfP(130);
-    fuzzyHeartrate.getConjunto(4)->setNucleoSupP(150);
-    fuzzyHeartrate.getConjunto(4)->setLimiteSuperiorP(150);
-
-    //std::cout << "Después de modificar heartrate:" << std::endl;
+    // 3. Verificación Visual (Opcional)
+    // Muestra un par de variables para confirmar que los rangos especiales se aplicaron
+    //std::cout << "\nVariable Ritmo Cardiaco" << std::endl;
     //fuzzyHeartrate.mostrarConjuntos();
 
-    // Oxygen saturation rojo <70, amarillo 71 - 89, verde >90
-    fuzzySaturation.getConjunto(0)->setLimiteSuperiorP(80);
-    fuzzySaturation.getConjunto(0)->setNucleoSupP(70);
-    
-    fuzzySaturation.getConjunto(1)->setLimiteSuperiorP(90);
-    fuzzySaturation.getConjunto(1)->setNucleoSupP(80);
-    fuzzySaturation.getConjunto(1)->setNucleoInfP(80);
-    fuzzySaturation.getConjunto(1)->setLimiteInferiorP(70);
-
-    fuzzySaturation.getConjunto(2)->setLimiteSuperiorP(100);
-    fuzzySaturation.getConjunto(2)->setNucleoSupP(100);
-    fuzzySaturation.getConjunto(2)->setNucleoInfP(90);
-    fuzzySaturation.getConjunto(2)->setLimiteInferiorP(80);
-
-    //std::cout << "Después de modificar Saturation:" << std::endl;
-    //fuzzySaturation.mostrarConjuntos();
-
-    // Body temperature rojo_izq <35.5, amarillo_izq <36, verde 36.5-37.5, amarillo_der >38, rojo_der >40
-    fuzzyBodyTemp.getConjunto(0)->setLimiteSuperiorP(36);
-    fuzzyBodyTemp.getConjunto(0)->setNucleoSupP(35.5);
-
-    fuzzyBodyTemp.getConjunto(1)->setLimiteSuperiorP(36.5);
-    fuzzyBodyTemp.getConjunto(1)->setNucleoSupP(36);
-    fuzzyBodyTemp.getConjunto(1)->setNucleoInfP(36);
-    fuzzyBodyTemp.getConjunto(1)->setLimiteInferiorP(35.5);
-
-    fuzzyBodyTemp.getConjunto(2)->setLimiteSuperiorP(38);
-    fuzzyBodyTemp.getConjunto(2)->setNucleoSupP(37.5);
-    fuzzyBodyTemp.getConjunto(2)->setNucleoInfP(36.5);
-    fuzzyBodyTemp.getConjunto(2)->setLimiteInferiorP(36);
-
-    fuzzyBodyTemp.getConjunto(3)->setLimiteSuperiorP(40);
-    fuzzyBodyTemp.getConjunto(3)->setNucleoSupP(38);
-    fuzzyBodyTemp.getConjunto(3)->setNucleoInfP(38);
-    fuzzyBodyTemp.getConjunto(3)->setLimiteInferiorP(37.5);
-
-    fuzzyBodyTemp.getConjunto(4)->setNucleoInfP(40);
-    fuzzyBodyTemp.getConjunto(4)->setLimiteInferiorP(38);
-
-
-    // std::cout << "Después de modificar BodyTemp:" << std::endl;
-    // fuzzyBodyTemp.mostrarConjuntos();
-
-    // Systolic blood pressure: rojo_izq <90, amarillo_izq <110, verde 120-140 amarillo_der >160, rojo_der >200
-
-    fuzzySystolicBP.getConjunto(0)->setLimiteSuperiorP(110);
-    fuzzySystolicBP.getConjunto(0)->setNucleoSupP(90);
-
-    fuzzySystolicBP.getConjunto(1)->setLimiteSuperiorP(120);
-    fuzzySystolicBP.getConjunto(1)->setNucleoSupP(110);
-    fuzzySystolicBP.getConjunto(1)->setNucleoInfP(110);
-    fuzzySystolicBP.getConjunto(1)->setLimiteInferiorP(90);
-
-    fuzzySystolicBP.getConjunto(2)->setLimiteSuperiorP(160);
-    fuzzySystolicBP.getConjunto(2)->setNucleoSupP(140);
-    fuzzySystolicBP.getConjunto(2)->setNucleoInfP(120);
-    fuzzySystolicBP.getConjunto(2)->setLimiteInferiorP(110);
-
-    fuzzySystolicBP.getConjunto(3)->setLimiteSuperiorP(200);
-    fuzzySystolicBP.getConjunto(3)->setNucleoInfP(160);
-    fuzzySystolicBP.getConjunto(3)->setNucleoSupP(160);
-    fuzzySystolicBP.getConjunto(3)->setLimiteInferiorP(140);
-
-    fuzzySystolicBP.getConjunto(4)->setNucleoInfP(200);
-    fuzzySystolicBP.getConjunto(4)->setLimiteInferiorP(160);
-
-
-    //std::cout << "Después de modificar Systolic pressure:" << std::endl;
-    //fuzzySystolicBP.mostrarConjuntos();
-
-
-    // Diastolic blood pressure: rojo_izq <60, amarillo_izq <80, verde 80-100 amarillo_der >110, rojo_der >120
-    //     0: 0 0 60 70 
-    // 1: 60 70 70 80
-    // 2: 70 80 100 110
-    // 3: 100 110 110 120 
-    // 4: 110 120 160 160
-
-    fuzzyDiastolicBP.getConjunto(0)->setLimiteSuperiorP(70);
-    fuzzyDiastolicBP.getConjunto(0)->setNucleoSupP(60);
-
-    fuzzyDiastolicBP.getConjunto(1)->setLimiteSuperiorP(80);
-    fuzzyDiastolicBP.getConjunto(1)->setNucleoSupP(70);
-    fuzzyDiastolicBP.getConjunto(1)->setNucleoInfP(70);
-    fuzzyDiastolicBP.getConjunto(1)->setLimiteInferiorP(60);
-
-    fuzzyDiastolicBP.getConjunto(2)->setLimiteSuperiorP(110);
-    fuzzyDiastolicBP.getConjunto(2)->setNucleoSupP(100);
-    fuzzyDiastolicBP.getConjunto(2)->setNucleoInfP(80);
-    fuzzyDiastolicBP.getConjunto(2)->setLimiteInferiorP(70);
-
-    fuzzyDiastolicBP.getConjunto(3)->setLimiteSuperiorP(120);
-    fuzzyDiastolicBP.getConjunto(3)->setNucleoInfP(110);
-    fuzzyDiastolicBP.getConjunto(3)->setNucleoSupP(110);
-    fuzzyDiastolicBP.getConjunto(3)->setLimiteInferiorP(100);
-
-    fuzzyDiastolicBP.getConjunto(4)->setNucleoInfP(120);
-    fuzzyDiastolicBP.getConjunto(4)->setLimiteInferiorP(110);
-
-    //std::cout << "Después de modificar Diastolic pressure:" << std::endl;
+    //std::cout << "\nVariable Presion Diastolica" << std::endl;
     //fuzzyDiastolicBP.mostrarConjuntos();
 
-
-    /*
-    // 2. Configurar el Motor Difuso
+    // 4. Configuración del Motor (Aquí irán las reglas de la Tarea 3)
     SistemaDifuso motor;
 
-    // SI HeartRate ES "rojo_izq" (muy bajo) ENTONCES colorSalida ES "rojo"
-    Regla r1(fuzzyColorOutput.getConjunto(0)->getEtiqueta(), 1);
-    r1.agregarPremisaP(&fuzzyHeartrate, "rojo_izq", TipoPremisa::AFIRMACION);
-    motor.agregarReglaP(r1);
+    // REGLA 1: PRIORIDAD ALTA (ROJO)
+    // Lógica: Si CUALQUIER signo vital es crítico, la salida es ROJO.
+    // Operador: OR 
 
-    // --- REGLA DE EJEMPLO 2 ---
-    // SI HeartRate ES "verde" (normal) ENTONCES colorSalida ES "verde"
-    Regla r2(fuzzyColorOutput.getConjunto(2)->getEtiqueta(), 3);
-    r2.agregarPremisaP(&fuzzyHeartrate, "verde", TipoPremisa::AFIRMACION);
-    motor.agregarReglaP(r2);
+    Regla reglaRojo("rojo", 0); // Consecuente: Output es "rojo" (ID conjunto 0 en Output)
+    reglaRojo.setOperador(TipoOperador::OR); 
 
+    // Agregamos todas las condiciones que disparan rojo
 
-    // 4. Prueba del Sistema
-    double valorEntrada = 10.0; // Un valor bajo (debería activar "rojo_izq")
+    reglaRojo.agregarPremisaP(&fuzzyHeartrate, "rojo_izq", TipoPremisa::AFIRMACION);
+    reglaRojo.agregarPremisaP(&fuzzyHeartrate, "rojo_der", TipoPremisa::AFIRMACION);
     
-    std::cout << "Entrada HeartRate: " << valorEntrada << std::endl;
 
-    // PASO A: Fuzzificar (calcular membresías de la entrada)
-    fuzzyHeartrate.calcularMembresia(valorEntrada);
+    reglaRojo.agregarPremisaP(&fuzzySaturation, "rojo", TipoPremisa::AFIRMACION);
+    
 
-    // PASO B: Resolver (El motor evalúa las reglas)
-    std::string resultado = motor.resolver();
+    reglaRojo.agregarPremisaP(&fuzzyBodyTemp, "rojo_izq", TipoPremisa::AFIRMACION);
+    reglaRojo.agregarPremisaP(&fuzzyBodyTemp, "rojo_der", TipoPremisa::AFIRMACION);
+    
+ 
+    reglaRojo.agregarPremisaP(&fuzzySystolicBP, "rojo_izq", TipoPremisa::AFIRMACION);
+    reglaRojo.agregarPremisaP(&fuzzySystolicBP, "rojo_der", TipoPremisa::AFIRMACION);
 
-    std::cout << "Resultado del Sistema: " << resultado << std::endl;
 
-    // Debug: Ver qué reglas se activaron
+    reglaRojo.agregarPremisaP(&fuzzyDiastolicBP, "rojo_izq", TipoPremisa::AFIRMACION);
+    reglaRojo.agregarPremisaP(&fuzzyDiastolicBP, "rojo_der", TipoPremisa::AFIRMACION);
+
+    motor.agregarReglaP(reglaRojo);
+
+    // REGLA 2: PRIORIDAD MEDIA (AMARILLO)
+    // Lógica: Si algún signo es de alerta, considera Amarillo.
+
+    Regla reglaAmarillo("amarillo", 1); 
+    reglaAmarillo.setOperador(TipoOperador::OR);
+
+ 
+    reglaAmarillo.agregarPremisaP(&fuzzyHeartrate, "amarillo_izq", TipoPremisa::AFIRMACION);
+    reglaAmarillo.agregarPremisaP(&fuzzyHeartrate, "amarillo_der", TipoPremisa::AFIRMACION);
+    
+
+    reglaAmarillo.agregarPremisaP(&fuzzySaturation, "amarillo", TipoPremisa::AFIRMACION);
+
+
+    reglaAmarillo.agregarPremisaP(&fuzzyBodyTemp, "amarillo_izq", TipoPremisa::AFIRMACION);
+    reglaAmarillo.agregarPremisaP(&fuzzyBodyTemp, "amarillo_der", TipoPremisa::AFIRMACION);
+
+
+    reglaAmarillo.agregarPremisaP(&fuzzySystolicBP, "amarillo_izq", TipoPremisa::AFIRMACION);
+    reglaAmarillo.agregarPremisaP(&fuzzySystolicBP, "amarillo_der", TipoPremisa::AFIRMACION);
+
+
+    reglaAmarillo.agregarPremisaP(&fuzzyDiastolicBP, "amarillo_izq", TipoPremisa::AFIRMACION);
+    reglaAmarillo.agregarPremisaP(&fuzzyDiastolicBP, "amarillo_der", TipoPremisa::AFIRMACION);
+
+    motor.agregarReglaP(reglaAmarillo);
+
+    // REGLA 3: PRIORIDAD BAJA (VERDE)
+    // Lógica: Para estar sano, TODOS los signos deben estar en rango normal.
+    // Operador: AND (Mínimo)
+
+    Regla reglaVerde("verde", 2);
+    reglaVerde.setOperador(TipoOperador::AND); 
+
+    reglaVerde.agregarPremisaP(&fuzzyHeartrate, "verde", TipoPremisa::AFIRMACION);
+    reglaVerde.agregarPremisaP(&fuzzySaturation, "verde", TipoPremisa::AFIRMACION);
+    reglaVerde.agregarPremisaP(&fuzzyBodyTemp, "verde", TipoPremisa::AFIRMACION);
+    reglaVerde.agregarPremisaP(&fuzzySystolicBP, "verde", TipoPremisa::AFIRMACION);
+    reglaVerde.agregarPremisaP(&fuzzyDiastolicBP, "verde", TipoPremisa::AFIRMACION);
+
+    motor.agregarReglaP(reglaVerde);
+
+
+
+    // 3. PRUEBA DE CASO (Simulación de un paciente)
+
+    std::cout << "Simulación de Paciente" << std::endl;
+    // Caso: Paciente con hipoxia severa (Sat 65 - Rojo) pero signos vitales normales en lo demas
+    double in_hr = 70;      // Verde
+    double in_sat = 65;     // Rojo (<70)
+    double in_temp = 37;    // Verde
+    double in_sys = 120;    // Verde
+    double in_dia = 80;     // Verde
+
+    std::cout << "Entradas: HR=" << in_hr << ", Sat=" << in_sat << ", Temp=" << in_temp << "..." << std::endl;
+
+    // Fuzzificación
+    fuzzyHeartrate.calcularMembresia(in_hr);
+    fuzzySaturation.calcularMembresia(in_sat);
+    fuzzyBodyTemp.calcularMembresia(in_temp);
+    fuzzySystolicBP.calcularMembresia(in_sys);
+    fuzzyDiastolicBP.calcularMembresia(in_dia);
+
+    // Inferencia
+    std::string resultado = motor.resolver(); // Debería ganar Rojo por la Saturación
+    
+    std::cout << "Diagnóstico Sugerido: " << resultado << std::endl;
+    
     motor.mostrarReglasActivas();
-    */
-    return 0;
 
+
+    std::cout << "\n\nGESTIÓN DE SALA DE ESPERA" << std::endl;
+
+    // Creamos la cola de prioridad usando nuestro comparador
+    std::priority_queue<Paciente, std::vector<Paciente>, ComparadorPacientes> salaDeEspera;
+    
+    // Paciente A: Amarillo MUY CLARO (Casi rojo o amarillo puro) -> Urgente
+    salaDeEspera.push(Paciente("Juan (Amarillo Fuerte)", "amarillo", 1, 0.95));
+
+    // Paciente B: Verde 
+    salaDeEspera.push(Paciente("Luis (Verde)", "verde", 0, 0.8));
+
+    // Paciente C: Rojo
+    salaDeEspera.push(Paciente("Ana (Rojo)", "rojo", 2, 0.6)); 
+    // Nota: Aunque su membresía es 0.6, su prioridad es 2, así que debe ganar.
+
+    // Paciente D: Amarillo DUDOSO (Casi verde)
+    salaDeEspera.push(Paciente("Pedro (Amarillo Debil)", "amarillo", 1, 0.4));
+
+    std::cout << "Pacientes ingresados en desorden... Atendiendo por prioridad:\n" << std::endl;
+
+    int turno = 1;
+    while (!salaDeEspera.empty()) {
+        Paciente p = salaDeEspera.top(); // Tomamos al de mayor prioridad
+        salaDeEspera.pop();              // Lo sacamos de la fila
+
+        std::cout << "Turno " << turno++ << ": " << p.nombre 
+                  << " | Nivel: " << p.colorTriage 
+                  << " (" << p.membresia << ")" << std::endl;
+    }
+
+    return 0;
 }

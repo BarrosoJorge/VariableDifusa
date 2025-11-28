@@ -45,3 +45,12 @@ void ConjuntoDifuso::setParametros(const std::vector<double>&& _parametros) {
 std::vector<double> ConjuntoDifuso::getParametros() const {
     return parametros;
 }
+
+//metodos de prioridad
+void ConjuntoDifuso::setPrioridad(int _prioridad) {
+    this->prioridad = _prioridad;
+}
+
+int ConjuntoDifuso::getPrioridad() const {
+    return this->prioridad;
+}

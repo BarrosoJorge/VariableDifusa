@@ -5,12 +5,20 @@
 #include <algorithm> 
 #include "Premisa.h"
 
+
+enum class TipoOperador {
+    AND = 0, // Mínimo 
+    OR = 1   // Máximo 
+};
+
 class Regla {
 protected:
     std::vector<Premisa> antecedentes; // Lista de condiciones (IF...)
     std::string etiquetaConsecuente;   // La salida (THEN...)
     int idConsecuente;                 // ID numérico de la salida (opcional, para defuzzificar)
     double fuerzaDisparo;              // Resultado de la última evaluación
+
+    TipoOperador operador;          // Tipo de operador lógico (AND/OR)
 
     //  Métodos protegidos de gestión interna 
     
@@ -46,4 +54,7 @@ public:
     // Genera el texto legible de la regla
     // Ej: "IF (Hue IS red) AND (Sat IS NOT low) THEN Output IS Red"
     std::string toString() const;
+
+
+    void setOperador(TipoOperador _op);
 };
