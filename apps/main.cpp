@@ -167,10 +167,16 @@ public:
     std::cout << "F1-score: " << f1score << std::endl;
   }
 };
+void print_confussion(std::vector<int> matriz) {
+  std::cout << "TP: " << matriz[0] << std::endl;
+  std::cout << "FP: " << matriz[1] << std::endl;
+  std::cout << "FN: " << matriz[2] << std::endl;
+  std::cout << "TN: " << matriz[3] << std::endl;
+}
 int main() {
   std::cout << "Inicializando Sistema de Triage" << std::endl;
   FuzzyModel model;
-  DataFrame df = read_csv("../data/dataset_final_2.csv");
+  DataFrame df = read_csv("../data/dataset_good.csv");
   DataFrame y = df["Risk Category"];
   auto cuentas = y.value_counts(y.columns[0]);
   for (const auto &pares : cuentas)
@@ -179,8 +185,7 @@ int main() {
   std::vector<std::string> y_pred = model.fit(X);
   std::vector<int> confusion =
       model.evalue(y.get_column_values<std::string>(y.columns[0].name), y_pred);
-  for (const auto &elemento : confusion)
-    std::cout << elemento << std::endl;
+  print_confussion(confusion);
   Evaluador ev(confusion);
   ev.imprimir();
   return 0;
