@@ -3,9 +3,9 @@
 #include <cmath>
 #include <cstdio>
 #include <cstring>
+#include <iostream>
 #include <stdexcept>
 #include <string>
-#include <variant>
 #include <vector>
 DataFrame::DataFrame(const std::vector<std::string> &colnames) {
   addColNames(colnames);
@@ -18,6 +18,9 @@ void DataFrame::addColNames(const std::vector<std::string> &colnames) {
     columns.push_back(col);
   }
 }
+
+// Devuelve una referencia al vector contiguo de la columna
+
 void DataFrame::add_row(const std::vector<std::string> &row) {
   if (row.size() != this->columns.size())
     throw std::runtime_error("Row has wrong number of columns.");
@@ -68,14 +71,36 @@ void DataFrame::print_cols() {
   for (const auto &columna : this->columns)
     std::cout << columna.name << std::endl;
 }
-DataFrame::column &DataFrame::operator[](const std::string &name) {
+DataFrame DataFrame::operator[](const std::string &name) {
+  DataFrame new_df;
   for (auto &cols : this->columns) {
     if (cols.name == name) {
-      return cols;
+      new_df.columns.push_back(cols);
+      new_df.nrows = this->nrows;
+      return new_df;
     }
-    throw std::runtime_error("Column not found: " + name);
   }
-  throw std::out_of_range("Column does not exist: " + name);
+  throw std::runtime_error("Column not found: " + name);
+}
+const DataFrame DataFrame::operator[](const std::string &name) const {
+  DataFrame new_df;
+  for (auto &cols : this->columns) {
+    if (cols.name == name) {
+      new_df.columns.push_back(cols);
+      new_df.nrows = this->nrows;
+      return new_df;
+    }
+  }
+  throw std::runtime_error("Column not found: " + name);
+}
+DataFrame DataFrame::drop(std::string label) {
+  DataFrame df_new;
+  for (const auto &col : this->columns) {
+    if (col.name != label)
+      df_new.columns.push_back(col);
+  }
+  df_new.nrows = this->nrows;
+  return df_new;
 }
 double DataFrame::min(const column &valor) const {
   if (valor.tipo == ColumnType::Int) {
@@ -170,6 +195,7 @@ void DataFrame::info() {
     this->info(names);
   }
 }
+/*
 const DataFrame::column &DataFrame::operator[](const std::string &name) const {
   for (const auto &col : columns) {
     if (col.name == name) {
@@ -178,6 +204,24 @@ const DataFrame::column &DataFrame::operator[](const std::string &name) const {
   }
   throw std::out_of_range("Column does not exist: " + name);
 }
+*/
+std::vector<std::pair<std::string, int>>
+DataFrame::value_counts(const DataFrame::column &col) {
+  std::unordered_map<std::string, int> freq;
+  if (col.tipo == ColumnType::String)
+    for (auto &v : col.strings)
+      freq[v]++;
+  if (col.tipo == ColumnType::Int)
+    for (int v : col.ints)
+      freq[std::to_string(v)]++;
+  if (col.tipo == ColumnType::Double)
+    for (double v : col.doubles)
+      freq[std::to_string(v)]++;
+  std::vector<std::pair<std::string, int>> result(freq.begin(), freq.end());
+  std::sort(result.begin(), result.end(),
+            [](auto &a, auto &b) { return a.second > b.second; });
+  return result;
+}
 DataFrame read_csv(const std::string &file_path, char separation) {
   std::fstream fs(file_path, std::fstream::in);
   if (!fs.is_open()) {
@@ -185,7 +229,10 @@ DataFrame read_csv(const std::string &file_path, char separation) {
   }
   std::string line;
   std::getline(fs, line);
+
   auto cols = split_fast(line, separation);
+  for (auto &c : cols)
+    c = rtrim(c);
   DataFrame df(cols);
   size_t count = 0;
   std::streampos pos = fs.tellg();
@@ -211,12 +258,18 @@ DataFrame read_csv(const std::string &file_path, char separation) {
   }
   while (std::getline(fs, line)) {
     std::vector<std::string> row_separated = split_fast(line, separation);
+    for (auto &c : cols)
+      c = rtrim(c);
     df.add_row(row_separated);
   }
   fs.close();
   return df;
 }
 
+std::string rtrim(std::string &s) {
+  size_t end = s.find_last_not_of(" \t\r\n");
+  return (end == std::string::npos) ? "" : s.substr(0, end + 1);
+}
 std::vector<std::string> split_fast(std::string line, char separation) {
   std::vector<std::string> out;
   size_t start = 0;

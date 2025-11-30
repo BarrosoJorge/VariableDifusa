@@ -5,6 +5,7 @@
 #include <iostream>
 #include <math.h>
 #include <string>
+#include <unordered_map>
 #include <variant>
 #include <vector>
 enum class ColumnType { Int, Double, String };
@@ -37,13 +38,30 @@ public:
   std::vector<double> cuartil(const column &col) const;
 
   void add_row(const std::vector<std::string> &row);
-  column &operator[](const std::string &name);
-  const column &operator[](const std::string &name) const;
+  DataFrame operator[](const std::string &name);
+  const DataFrame operator[](const std::string &name) const;
   void print() const;
   void print_cols();
   void info();
   void info(const column &valor);
+  std::vector<std::pair<std::string, int>> value_counts(const column &col);
+  DataFrame drop(std::string label);
+  template <typename T>
+  std::vector<T> &get_column_values(const std::string &name) {
+    for (auto &col : columns) {
+      if (col.name == name) {
+        if constexpr (std::is_same_v<T, int>)
+          return col.ints;
+        else if constexpr (std::is_same_v<T, double>)
+          return col.doubles;
+        else if constexpr (std::is_same_v<T, std::string>)
+          return col.strings;
+      }
+    }
+    throw std::runtime_error("Column type mismatch");
+  }
 };
 
 DataFrame read_csv(const std::string &file_path, char separation = ',');
 std::vector<std::string> split_fast(std::string line, char separation);
+std::string rtrim(std::string &s);
