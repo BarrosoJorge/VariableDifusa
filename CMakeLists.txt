@@ -18,7 +18,6 @@ set(SOURCES
     src/Trapezoidal.cpp
     src/Triangular.cpp
     src/VariableDifusa.cpp
-
     pipeline/reader.cpp
     src/GeneradorVariables.cpp
 )
@@ -31,3 +30,4 @@ add_executable(VariableDifusa3 apps/main_2.cpp ${SOURCES})
 # --- Linking ---
 target_link_libraries(VariableDifusa ${OpenCV_LIBS})
 target_link_libraries(VariableDifusa2 ${OpenCV_LIBS})
+target_link_libraries(VariableDifusa3 ${OpenCV_LIBS})

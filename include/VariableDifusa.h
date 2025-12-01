@@ -5,6 +5,7 @@
 
 #include "Triangular.h"
 #include "Trapezoidal.h" 
+#include <opencv2/opencv.hpp>
 
 class VariableDifusa {
     protected:
@@ -64,4 +65,7 @@ class VariableDifusa {
 
         ConjuntoDifuso* getConjunto(int indice) const;
         ConjuntoDifuso* getConjunto(const std::string& etiqueta) const;
+
+
+        void dibujar(int ancho = 800, int alto = 400);
 };

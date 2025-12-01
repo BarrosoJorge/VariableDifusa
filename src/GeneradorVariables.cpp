@@ -14,31 +14,31 @@ GeneradorVariables::GeneradorVariables() {
 
 // MÉTODOS PÚBLICOS DE CREACIÓN
 VariableDifusa GeneradorVariables::crearHeartRate() {
-    VariableDifusa var("Hr", etiquetas_5_niveles.size(), 0, 200, false, etiquetas_5_niveles);
+    VariableDifusa var("Hr", etiquetas_5_niveles.size(), 30, 190, false, etiquetas_5_niveles);
     configurarHeartRate(&var);
     return var;
 }
 
 VariableDifusa GeneradorVariables::crearOxygenSaturation() {
-    VariableDifusa var("O2", etiquetas_3_niveles.size(), 0, 100, false, etiquetas_3_niveles);
+    VariableDifusa var("O2", etiquetas_3_niveles.size(), 50, 100, false, etiquetas_3_niveles);
     configurarOxygenSaturation(&var);
     return var;
 }
 
 VariableDifusa GeneradorVariables::crearBodyTemp() {
-    VariableDifusa var("Bt", etiquetas_5_niveles.size(), 0, 45, false, etiquetas_5_niveles);
+    VariableDifusa var("Bt", etiquetas_5_niveles.size(), 34, 42, false, etiquetas_5_niveles);
     configurarBodyTemp(&var);
     return var;
 }
 
 VariableDifusa GeneradorVariables::crearSystolicBP() {
-    VariableDifusa var("SysBP", etiquetas_5_niveles.size(), 0, 220, false, etiquetas_5_niveles);
+    VariableDifusa var("SysBP", etiquetas_5_niveles.size(), 50, 200, false, etiquetas_5_niveles);
     configurarSystolicBP(&var);
     return var;
 }
 
 VariableDifusa GeneradorVariables::crearDiastolicBP() {
-    VariableDifusa var("DiaBP", etiquetas_5_niveles.size(), 0, 160, false, etiquetas_5_niveles);
+    VariableDifusa var("DiaBP", etiquetas_5_niveles.size(), 30, 130, false, etiquetas_5_niveles);
     configurarDiastolicBP(&var);
     return var;
 }
@@ -57,147 +57,115 @@ VariableDifusa GeneradorVariables::crearColorOutput() {
 
 // logica de triage
 
+
 void GeneradorVariables::configurarHeartRate(VariableDifusa* var) {
+    var->getConjunto(0)->setPrioridad(2); 
+    var->getConjunto(1)->setPrioridad(1); 
+    var->getConjunto(2)->setPrioridad(0); 
+    var->getConjunto(3)->setPrioridad(1); 
+    var->getConjunto(4)->setPrioridad(2);
 
-    var->getConjunto(0)->setPrioridad(2); // rojo_izq
-    var->getConjunto(1)->setPrioridad(1); // amarillo_izq
-    var->getConjunto(2)->setPrioridad(0); // verde
-    var->getConjunto(3)->setPrioridad(1); // amarillo_der
-    var->getConjunto(4)->setPrioridad(2); // rojo_der
+    // 0: Rojo Izq (< 40)
+    var->getConjunto(0)->setParametros({0, 0, 39, 41});
 
-    // heartrate rojo_izq: <40, amarillo_izq <60, verde 60-80, amarillo_der >110, rojo_der > 130}
-    var->getConjunto(0)->setNucleoSupP(40);
+    // 1: Amarillo Izq (40 - 60)
+    var->getConjunto(1)->setParametros({39, 41, 59, 61});
 
-    var->getConjunto(1)->setLimiteInferiorP(40);
-    var->getConjunto(1)->setNucleoInfP(50);
-    var->getConjunto(1)->setNucleoSupP(50);
-    var->getConjunto(1)->setLimiteSuperiorP(60);
+    // 2: Verde (60 - 80) 
+    var->getConjunto(2)->setParametros({59, 61, 79, 81});
 
-    var->getConjunto(2)->setNucleoInfP(60);
-    var->getConjunto(2)->setNucleoSupP(80);
-    var->getConjunto(2)->setLimiteSuperiorP(110);
+    // 3: Amarillo Der (80 - 130)
+    var->getConjunto(3)->setParametros({79, 81, 129, 131});
 
-    var->getConjunto(3)->setLimiteInferiorP(80);
-    var->getConjunto(3)->setNucleoInfP(110);
-    var->getConjunto(3)->setNucleoSupP(110);
-    var->getConjunto(3)->setLimiteSuperiorP(130);
-
-    var->getConjunto(4)->setLimiteInferiorP(110);
-    var->getConjunto(4)->setNucleoInfP(130);
-    var->getConjunto(4)->setNucleoSupP(150);
-    var->getConjunto(4)->setLimiteSuperiorP(150);
+    // 4: Rojo Der (> 130)
+    var->getConjunto(4)->setParametros({129, 131, 200, 200});
 }
 
 void GeneradorVariables::configurarOxygenSaturation(VariableDifusa* var) {
+    var->getConjunto(0)->setPrioridad(2); 
+    var->getConjunto(1)->setPrioridad(1); 
+    var->getConjunto(2)->setPrioridad(0); 
 
-    var->getConjunto(0)->setPrioridad(2); // rojo
-    var->getConjunto(1)->setPrioridad(1); // amarillo
-    var->getConjunto(2)->setPrioridad(0); // verde
+    // 0: Rojo (< 70)
+    var->getConjunto(0)->setParametros({0, 0, 69, 71});
 
-    // Oxygen saturation rojo <70, amarillo 71 - 89, verde >90
-    var->getConjunto(0)->setLimiteSuperiorP(80);
-    var->getConjunto(0)->setNucleoSupP(70);
-    
-    var->getConjunto(1)->setLimiteSuperiorP(90);
-    var->getConjunto(1)->setNucleoSupP(80);
-    var->getConjunto(1)->setNucleoInfP(80);
-    var->getConjunto(1)->setLimiteInferiorP(70);
+    // 1: Amarillo (70 - 89)
+    var->getConjunto(1)->setParametros({69, 71, 89, 91});
 
-    var->getConjunto(2)->setLimiteSuperiorP(100);
-    var->getConjunto(2)->setNucleoSupP(100);
-    var->getConjunto(2)->setNucleoInfP(90);
-    var->getConjunto(2)->setLimiteInferiorP(80);
+    // 2: Verde (> 90)
+    var->getConjunto(2)->setParametros({89, 91, 100, 100});
 }
 
 void GeneradorVariables::configurarBodyTemp(VariableDifusa* var) {
-
     var->getConjunto(0)->setPrioridad(2); 
     var->getConjunto(1)->setPrioridad(1); 
     var->getConjunto(2)->setPrioridad(0); 
     var->getConjunto(3)->setPrioridad(1); 
     var->getConjunto(4)->setPrioridad(2);
 
-    // Body temperature rojo_izq <35.5, amarillo_izq <36, verde 36.5-37.5, amarillo_der >38, rojo_der >40
-    var->getConjunto(0)->setLimiteSuperiorP(36);
-    var->getConjunto(0)->setNucleoSupP(35.5);
+    // 0: Rojo Izq (< 35.5)
+    var->getConjunto(0)->setParametros({30, 30, 35.4, 35.6});
 
-    var->getConjunto(1)->setLimiteSuperiorP(36.5);
-    var->getConjunto(1)->setNucleoSupP(36);
-    var->getConjunto(1)->setNucleoInfP(36);
-    var->getConjunto(1)->setLimiteInferiorP(35.5);
+    // 1: Amarillo Izq (35.5 - 36.5)
+    var->getConjunto(1)->setParametros({35.4, 35.6, 36.4, 36.6});
 
-    var->getConjunto(2)->setLimiteSuperiorP(38);
-    var->getConjunto(2)->setNucleoSupP(37.5);
-    var->getConjunto(2)->setNucleoInfP(36.5);
-    var->getConjunto(2)->setLimiteInferiorP(36);
+    // 2: Verde (36.5 - 37.5) ESTRICTO
+    var->getConjunto(2)->setParametros({36.4, 36.6, 37.4, 37.6});
 
-    var->getConjunto(3)->setLimiteSuperiorP(40);
-    var->getConjunto(3)->setNucleoSupP(38);
-    var->getConjunto(3)->setNucleoInfP(38);
-    var->getConjunto(3)->setLimiteInferiorP(37.5);
+    // 3: Amarillo Der (37.5 - 40)
+    var->getConjunto(3)->setParametros({37.4, 37.6, 39.9, 40.1});
 
-    var->getConjunto(4)->setNucleoInfP(40);
-    var->getConjunto(4)->setLimiteInferiorP(38);
+    // 4: Rojo Der (> 40)
+    var->getConjunto(4)->setParametros({39.9, 40.1, 45, 45});
 }
 
 void GeneradorVariables::configurarSystolicBP(VariableDifusa* var) {
-
     var->getConjunto(0)->setPrioridad(2); 
     var->getConjunto(1)->setPrioridad(1); 
     var->getConjunto(2)->setPrioridad(0); 
     var->getConjunto(3)->setPrioridad(1); 
     var->getConjunto(4)->setPrioridad(2);
 
-    // Systolic blood pressure: rojo_izq <90, amarillo_izq <110, verde 120-140 amarillo_der >160, rojo_der >200
-    var->getConjunto(0)->setLimiteSuperiorP(110);
-    var->getConjunto(0)->setNucleoSupP(90);
+    // 0: Rojo Izq (< 90)
+    var->getConjunto(0)->setParametros({0, 0, 89, 91});
 
-    var->getConjunto(1)->setLimiteSuperiorP(120);
-    var->getConjunto(1)->setNucleoSupP(110);
-    var->getConjunto(1)->setNucleoInfP(110);
-    var->getConjunto(1)->setLimiteInferiorP(90);
+    // 1: Amarillo Izq (90 - 100)
+    var->getConjunto(1)->setParametros({89, 91, 99, 101});
 
-    var->getConjunto(2)->setLimiteSuperiorP(160);
-    var->getConjunto(2)->setNucleoSupP(140);
-    var->getConjunto(2)->setNucleoInfP(120);
-    var->getConjunto(2)->setLimiteInferiorP(110);
+    // 2: Verde (100 - 140)
+    var->getConjunto(2)->setParametros({99, 101, 139, 141});
 
-    var->getConjunto(3)->setLimiteSuperiorP(200);
-    var->getConjunto(3)->setNucleoInfP(160);
-    var->getConjunto(3)->setNucleoSupP(160);
-    var->getConjunto(3)->setLimiteInferiorP(140);
+    // 3: Amarillo Der (140 - 200) 
+    // Completamos el hueco hasta 200 donde empieza el rojo estricto
+    var->getConjunto(3)->setParametros({139, 141, 199, 201});
 
-    var->getConjunto(4)->setNucleoInfP(200);
-    var->getConjunto(4)->setLimiteInferiorP(160);
+    // 4: Rojo Der (> 200)
+    var->getConjunto(4)->setParametros({199, 201, 300, 300});
 }
 
 void GeneradorVariables::configurarDiastolicBP(VariableDifusa* var) {
-
     var->getConjunto(0)->setPrioridad(2); 
     var->getConjunto(1)->setPrioridad(1); 
     var->getConjunto(2)->setPrioridad(0); 
     var->getConjunto(3)->setPrioridad(1); 
     var->getConjunto(4)->setPrioridad(2);
 
-    // Diastolic blood pressure: rojo_izq <60, amarillo_izq <80, verde 80-100 amarillo_der >110, rojo_der >120
-    var->getConjunto(0)->setLimiteSuperiorP(70);
-    var->getConjunto(0)->setNucleoSupP(60);
+    // Estrategia: Verde es 60-100.
+    // Rojo Izq < 50 (Severo)
+    // Amarillo Izq 50-60
+    
+    // 0: Rojo Izq (< 50) 
+    var->getConjunto(0)->setParametros({0, 0, 49, 51});
 
-    var->getConjunto(1)->setLimiteSuperiorP(80);
-    var->getConjunto(1)->setNucleoSupP(70);
-    var->getConjunto(1)->setNucleoInfP(70);
-    var->getConjunto(1)->setLimiteInferiorP(60);
+    // 1: Amarillo Izq (50 - 60)
+    var->getConjunto(1)->setParametros({49, 51, 59, 61});
 
-    var->getConjunto(2)->setLimiteSuperiorP(110);
-    var->getConjunto(2)->setNucleoSupP(100);
-    var->getConjunto(2)->setNucleoInfP(80);
-    var->getConjunto(2)->setLimiteInferiorP(70);
+    // 2: Verde (60 - 100)
+    var->getConjunto(2)->setParametros({59, 61, 99, 101});
 
-    var->getConjunto(3)->setLimiteSuperiorP(120);
-    var->getConjunto(3)->setNucleoInfP(110);
-    var->getConjunto(3)->setNucleoSupP(110);
-    var->getConjunto(3)->setLimiteInferiorP(100);
+    // 3: Amarillo Der (100 - 120)
+    var->getConjunto(3)->setParametros({99, 101, 119, 121});
 
-    var->getConjunto(4)->setNucleoInfP(120);
-    var->getConjunto(4)->setLimiteInferiorP(110);
+    // 4: Rojo Der (> 120)
+    var->getConjunto(4)->setParametros({119, 121, 200, 200});
 }

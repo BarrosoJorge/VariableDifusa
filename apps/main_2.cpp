@@ -156,7 +156,8 @@ int main() {
     fuzzyDiastolicBP.calcularMembresia(in_dia);
 
     // Inferencia
-    std::string resultado = motor.resolver(); // Debería ganar Rojo por la Saturación
+    std::pair<std::string, double> res = motor.resolver();
+    std::string resultado = res.first;
     
     std::cout << "Diagnóstico Sugerido: " << resultado << std::endl;
     

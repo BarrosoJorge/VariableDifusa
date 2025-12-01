@@ -1,6 +1,7 @@
 #pragma once
 #include <vector>
 #include <string>
+#include <utility> 
 #include <iostream>
 #include "Regla.h"
 
@@ -19,7 +20,7 @@ public:
     
     // Evalúa todas las reglas y devuelve la etiqueta de la regla con mayor fuerza de disparo (Max-Membership)
     // equivalente de buscar el maxMu
-    std::string resolver();
+    std::pair<std::string, double> resolver();
 
     // Método opcional para depuración: imprime qué reglas se activaron y con cuánto
     void mostrarReglasActivas() const;
